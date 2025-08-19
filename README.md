@@ -44,7 +44,7 @@
 └── settingcamera.json                  // thay source_id bằng source_id của camera nhận diện tương ứng
 ```
 
-# Các phần cần sửa
+# CÁC PHẦN LƯU Ý
 
 - Sửa connectstring và database name trong appsetting.json phần MongoDb (ĐÃ SỬA ĐÚNG THEO H2Xsmart)
 - Sửa DbWeSmart.cs trong phần Models sao cho đúng tên Collection của Eventlog (ĐÃ SỬA)
@@ -67,7 +67,7 @@
 - hiện những sự kiện biển số và cảnh báo biển mặt không khớp
 - có thể xuất báo cáo biển số
 
-# settingcamera.json
+# settingcamera.json (ĐIÊN GW VÀ CAMERA ĐÚNG BÊN 78 CÒN CAMERA BIỂN CHƯA BIẾN THÔNG SỐ)
 
 ```
 {
@@ -87,7 +87,7 @@
 ]
 "camerasLprPair": [
   {
-    "source_id": "5ae996f5e7df4588b71bb002b189d4e5",
+    "source_id": "cf3e28bc561f41a2968369a99f66e148",
     "name": "CameraFrLpr",
     "type": "face"
   },
