@@ -44,6 +44,13 @@
 └── settingcamera.json                  // thay source_id bằng source_id của camera nhận diện tương ứng
 ```
 
+# Các phần cần sửa
+
+- Sửa connectstring và database name trong appsetting.json phần MongoDb (ĐÃ SỬA ĐÚNG THEO H2Xsmart)
+- Sửa DbWeSmart.cs trong phần Models sao cho đúng tên Collection của Eventlog (ĐÃ SỬA)
+- Thay source_id trong settingcamera.json thành souce_id của camera nhận diện tương ứng (ĐÃ SỬA - chưa sửa camera nhận biển)
+- (LƯU Ý)Trong Controllers -> InOutController.cs, LprReportController.cs hàm ExReport phần [var folder = @"D:\excel"] SỬA CHO ĐÚNG ĐƯỜNG ĐÃN file Template Excel mẫu
+
 # InOut (Models: ItemModel(lưu dữ liệu ra view), eventLog, source, staff)
 
 - báo cáo vào ra, quân số hiện tại, tổng quân số, số khách
@@ -59,13 +66,6 @@
 
 - hiện những sự kiện biển số và cảnh báo biển mặt không khớp
 - có thể xuất báo cáo biển số
-
-# Các phần cần sửa
-
-- Sửa connectstring và database name trong appsetting.json phần MongoDb (ĐÃ SỬA ĐÚNG THEO H2Xsmart)
-- Sửa DbWeSmart.cs trong phần Models sao cho đúng tên Collection của Eventlog (ĐÃ SỬA)
-- Thay source_id trong settingcamera.json thành souce_id của camera nhận diện tương ứng (ĐÃ SỬA - chưa sửa camera nhận biển)
-- Trong Controllers -> InOutController.cs hàm ExReport phần [var folder = @"D:\excel"] sửa cho đúng đường dẫn chứa file Template Excel mẫu
 
 # settingcamera.json
 
