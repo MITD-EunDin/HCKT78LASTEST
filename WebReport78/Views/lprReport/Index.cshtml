@@ -1,0 +1,148 @@
+﻿@model List<WebReport78.Models.LprEventViewModel>
+@{
+    ViewData["Title"] = "Báo cáo biển số";
+
+    var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.Today;
+    var toDate = ViewBag.ToDate as DateTime? ?? DateTime.Today.AddHours(23).AddMinutes(59);
+
+    // Giữ format dd-MM-yyyy HH:mm cho type="datetime"
+    var fromDateTime = fromDate.ToString("dd-MM-yyyy HH:mm");
+    var toDateTime = toDate.ToString("dd-MM-yyyy HH:mm");
+
+    var filterType = ViewBag.Filter as string ?? "All";
+    var currentPage = ViewBag.Page as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 100;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+}
+
+@await Html.PartialAsync("_ExportReport")
+
+<div class="container">
+    <!-- Form tìm kiếm -->
+    <form asp-action="Index" asp-controller="LprReport" method="get">
+        <div class="row align-items-end mb-4">
+            <div class="col-md-2">
+                <label for="fromDate" class="form-label">Từ:</label>
+                <input type="datetime" id="fromDate" name="fromDate" class="form-control"
+                       value="@fromDateTime" required
+                       oninvalid="this.setCustomValidity('Vui lòng không bỏ trống')"
+                       oninput="this.setCustomValidity('')" />
+            </div>
+            <div class="col-md-2">
+                <label for="toDate" class="form-label">Đến:</label>
+                <input type="datetime" id="toDate" name="toDate" class="form-control"
+                       value="@toDateTime" required
+                       oninvalid="this.setCustomValidity('Vui lòng không bỏ trống')"
+                       oninput="this.setCustomValidity('')" />
+            </div>
+            <div class="col-md-2">
+                <label for="filterType" class="form-label">Lọc dữ liệu:</label>
+                <select id="filterType" name="filterType" class="form-control">
+                    <option value="All" selected="@(filterType == "All")">Tất cả</option>
+                    <option value="EVENT_USER_FACE_LPR_MISMATCH" selected="@(filterType == "EVENT_USER_FACE_LPR_MISMATCH")">Cảnh báo không khớp</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    Load dữ liệu
+                </button>
+                <button type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#exportModal"
+                        class="btn btn-success w-100">
+                    Xuất Excel
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Bảng dữ liệu -->
+    <div class="table-responsive table-scroll" style="height: 70vh;">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Biển số</th>
+                    <th>Chủ sở hữu</th>
+                    <th>Camera nhận biển</th>
+                    <th>Người cầm xe</th>
+                    <th>Camera nhận mặt</th>
+                    <th>Cảnh báo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.formatted_date</td>
+                            <td>@item.LicensePlate</td>
+                            <td>@item.Owner</td>
+                            <td>@item.CameraLpr</td>
+                            <td>@item.DirverName</td>
+                            <td>@item.CameraFr</td>
+                            <td class="@(string.IsNullOrEmpty(item.Warning) ? "" : "text-danger")">@item.Warning</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">Không có dữ liệu biển số.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Page navigation" class="mt-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new {
+                           fromDate = fromDate.ToString("dd-MM-yyyy HH:mm"),
+                           toDate = toDate.ToString("dd-MM-yyyy HH:mm"),
+                           filterType,
+                           page = currentPage - 1,
+                           pageSize
+                       })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new {
+                               fromDate = fromDate.ToString("dd-MM-yyyy HH:mm"),
+                               toDate = toDate.ToString("dd-MM-yyyy HH:mm"),
+                               filterType,
+                               page = i,
+                               pageSize
+                           })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new {
+                           fromDate = fromDate.ToString("dd-MM-yyyy HH:mm"),
+                           toDate = toDate.ToString("dd-MM-yyyy HH:mm"),
+                           filterType,
+                           page = currentPage + 1,
+                           pageSize
+                       })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('fromDate').addEventListener('change', function () {
+            this.setCustomValidity('');
+        });
+    </script>
+}

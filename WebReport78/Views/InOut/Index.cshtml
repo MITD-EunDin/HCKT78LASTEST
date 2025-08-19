@@ -1,0 +1,274 @@
+﻿@model List<WebReport78.Models.eventLog>
+@{
+    ViewData["Title"] = "Báo cáo vào/ra";
+    var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.Today;
+    var toDate = ViewBag.ToDate as DateTime? ?? DateTime.Today.AddHours(23).AddMinutes(59);
+    var fromDateTime = fromDate.ToString("dd-MM-yyyy HH:mm");
+    var toDateTime = toDate.ToString("dd-MM-yyyy HH:mm");
+    var currentPage = ViewBag.Page as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 100;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var filterType = ViewBag.Filter as string ?? "All";
+}
+
+<div class="row">
+    <div>
+        @await Html.PartialAsync("_toastNotice")
+        <!-- Header section -->
+        @Html.Partial("Header")
+        <!--ExportReport-->
+        @await Html.PartialAsync("_ExportReport")
+        <!--AddCurrentSolider-->
+        @Html.Partial("AddCurSoliders")
+        <!-- Table section -->
+        <div class="table-responsive table-scroll" style="height: 70vh;">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        @if (ViewBag.Filter == "CurrentGuests")
+                        {
+                            <th>Tên</th>
+                            <th>Thời gian</th>
+                            <th>Mã định danh</th>
+                            <th>Giới tính</th>
+                        }
+                        else if (ViewBag.Filter == "CurrentSoldiers")
+                        {
+                            <th>Tên</th>
+                            <th>Mã định danh</th>
+                            <th>Giới tính</th>
+                            <th>Số điện thoại</th>
+                            <th>Hành động</th>
+                        }
+                        else
+                        {
+                            <th>Tên</th>
+                            <th>Thời gian</th>
+                            <th>Loại ra/vào</th>
+                            <th>Camera nhận dạng</th>
+                            <th>Sự kiện</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody id="inOutTableBody">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                @if (ViewBag.Filter == "CurrentGuests")
+                                {
+                                    <td>@item.Name</td>
+                                    <td>@item.formatted_date</td>
+                                    <td>@item.idCard</td>
+                                    <td>@item.Gender</td>
+                                }
+                                else if (ViewBag.Filter == "CurrentSoldiers")
+                                {
+                                    <td>@item.Name</td>
+                                    <td>@item.idCard</td>
+                                    <td>@item.Gender</td>
+                                    <td>@item.phone</td>
+                                    <td>
+                                        <form data-action="remove" method="post" style="display:inline;">
+                                            <input type="hidden" name="userGuid" value="@item.userGuid" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                        </form>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>@item.Name</td>
+                                    <td>@item.formatted_date</td>
+                                    <td>@item.type_eventIO</td>
+                                    <td>@item.sourceID</td>
+                                    <td>
+                                        @if (item.type_eventLE == "L")
+                                        {
+                                            <span class="text-danger">⏰ Đi muộn</span>
+                                        }
+                                        else if (item.type_eventLE == "E")
+                                        {
+                                            <span class="text-warning">🏃 Về sớm</span>
+                                        }
+
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            @if (ViewBag.Filter == "CurrentGuests")
+                            {
+                                <td colspan="4">Không có khách trong ngày.</td>
+                            }
+                            else if (ViewBag.Filter == "CurrentSoldiers")
+                            {
+                                <td colspan="6">Không có quân ngũ hiện tại.</td>
+                            }
+                            else
+                            {
+                                <td colspan="5">Không có dữ liệu nhân viên.</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Phân trang -->
+@if (totalPages > 1 && ViewBag.Filter != "CurrentSoldiers" && ViewBag.Filter != "CurrentGuests")
+{
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = currentPage - 1, pageSize = pageSize })">Trước</a>
+            </li>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = i, pageSize = pageSize })">@i</a>
+                </li>
+            }
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = currentPage + 1, pageSize = pageSize })">Sau</a>
+            </li>
+        </ul>
+    </nav>
+}
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Sử dụng event delegation để đảm bảo sự kiện hoạt động với modal động
+            $(document).on('keypress', '#idCard', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    // Mở modal nếu chưa mở
+                    if (!$('#addCurSoliderModal').is(':visible')) {
+                        $('#addCurSoliderModal').modal('show');
+                    }
+
+                    var idCard = $(this).val().trim();
+                    if (!idCard) {
+                        $('#formMessage').text('Vui lòng nhập mã định danh.');
+                        return;
+                    }
+
+                    console.log('Sending AJAX with idCard:', idCard);
+                    console.log('Token:', $('input[name="__RequestVerificationToken"]').val());
+
+                    $.ajax({
+                        url: '@Url.Action("CheckIdCard", "InOut")',
+                        type: 'POST',
+                        data: {
+                            idCard: idCard,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            console.log('Response:', response);
+                            if (response.success) {
+                                $('#userGuid').val(response.data.userGuid_cur);
+                                $('#name').val(response.data.name_cur);
+                                $('#gender').val(response.data.gender_cur);
+                                $('#phone').val(response.data.phoneNumber_cur);
+                                $('#formMessage').text('').removeClass('text-danger').addClass('text-success');
+                            } else {
+                                $('#formMessage').text(response.message).removeClass('text-success').addClass('text-danger');
+                                $('#userGuid').val('');
+                                $('#name').val('');
+                                $('#gender').val('');
+                                $('#phone').val('');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.log('AJAX Error:', error, xhr.responseText);
+                            $('#formMessage').text('Đã xảy ra lỗi khi kiểm tra mã định danh: ' + error).removeClass('text-success').addClass('text-danger');
+                            $('#userGuid').val('');
+                            $('#name').val('');
+                            $('#gender').val('');
+                            $('#phone').val('');
+                        }
+                    });
+                }
+            });
+
+            // Xử lý form submit để thêm quân nhân
+            $('#addSoldierForm').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: form.attr('method'),
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            $('#formMessage').text(response.message).removeClass('text-danger').addClass('text-success');
+                            form[0].reset();
+                            location.reload();
+                        } else {
+                            $('#formMessage').text(response.message).removeClass('text-success').addClass('text-danger');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('AJAX Error:', error, xhr.responseText);
+                        $('#formMessage').text('Đã xảy ra lỗi khi thêm quân nhân: ' + error).removeClass('text-success').addClass('text-danger');
+                    }
+                });
+            });
+
+            // Xử lý form xóa quân nhân
+            $(document).on('submit', 'form[data-action="remove"]', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var userGuid = form.find('input[name="userGuid"]').val();
+
+                console.log('Gửi yêu cầu xóa với userGuid:', userGuid);
+
+                $.ajax({
+                    url: '@Url.Action("RemoveCurrentSoldier", "InOut")',
+                    type: 'POST',
+                    data: {
+                        userGuid: userGuid,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        console.log('Phản hồi từ server:', response);
+                        if (response.success) {
+                            $('#tableMessage')
+                                .text(response.message)
+                                .removeClass('text-danger')
+                                .addClass('text-success');
+                            // Xóa hàng khỏi bảng
+                            form.closest('tr').remove();
+                            // Cập nhật số lượng quân nhân hiện tại
+                            var soldierCurrent = parseInt($('#soldierCurrent').text()) - 1;
+                            $('#soldierCurrent').text(soldierCurrent);
+                        } else {
+                            $('#tableMessage')
+                                .text(response.message)
+                                .removeClass('text-success')
+                                .addClass('text-danger');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('Lỗi AJAX:', error, xhr.responseText);
+                        $('#tableMessage')
+                            .text('Đã xảy ra lỗi khi xóa quân nhân: ' + error)
+                            .removeClass('text-success')
+                            .addClass('text-danger');
+                    }
+                });
+            });
+
+        });
+
+
+    </script>
+}
