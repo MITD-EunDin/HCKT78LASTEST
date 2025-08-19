@@ -158,37 +158,74 @@ namespace WebReport78.Controllers
             return JsonSerializer.Deserialize<CameraSettings>(cameraSettingsJson);
         }
 
-        private void SaveCurrentSoldiers(List<CurrentSoldier> soldiers)
-        {
-            var currentSoldiersFile = Path.Combine(_env.ContentRootPath, "currentsoldiers.json");
-            var json = JsonSerializer.Serialize(soldiers, new JsonSerializerOptions { WriteIndented = true });
-            System.IO.File.WriteAllText(currentSoldiersFile, json);
-        }
-        public List<CurrentSoldier> LoadCurrentSoldiers()
+        //private void SaveCurrentSoldiers(List<CurrentSoldier> soldiers)
+        //{
+        //    var currentSoldiersFile = Path.Combine(_env.ContentRootPath, "currentsoldiers.json");
+        //    var json = JsonSerializer.Serialize(soldiers, new JsonSerializerOptions { WriteIndented = true });
+        //    System.IO.File.WriteAllText(currentSoldiersFile, json);
+        //}
+        //public List<CurrentSoldier> LoadCurrentSoldiers()
+        //{
+        //    var currentSoldiersFile = Path.Combine(_env.ContentRootPath, "currentsoldiers.json");
+        //    if (!System.IO.File.Exists(currentSoldiersFile))
+        //    {
+        //        System.IO.File.WriteAllText(currentSoldiersFile, "[]");
+        //    }
+        //    var json = System.IO.File.ReadAllText(currentSoldiersFile);
+        //    return JsonSerializer.Deserialize<List<CurrentSoldier>>(json) ?? new List<CurrentSoldier>();
+        //}
+        private CurrentSoldiersData LoadCurrentSoldiersData()
         {
             var currentSoldiersFile = Path.Combine(_env.ContentRootPath, "currentsoldiers.json");
             if (!System.IO.File.Exists(currentSoldiersFile))
             {
-                System.IO.File.WriteAllText(currentSoldiersFile, "[]");
+                // Tạo file mới với cấu trúc rỗng
+                var emptyData = new CurrentSoldiersData();
+                var json = JsonSerializer.Serialize(emptyData, new JsonSerializerOptions { WriteIndented = true });
+                System.IO.File.WriteAllText(currentSoldiersFile, json);
             }
-            var json = System.IO.File.ReadAllText(currentSoldiersFile);
-            return JsonSerializer.Deserialize<List<CurrentSoldier>>(json) ?? new List<CurrentSoldier>();
+            var jsonData = System.IO.File.ReadAllText(currentSoldiersFile);
+            return JsonSerializer.Deserialize<CurrentSoldiersData>(jsonData) ?? new CurrentSoldiersData();
+        }
+
+        private void SaveCurrentSoldiersData(CurrentSoldiersData data)
+        {
+            var currentSoldiersFile = Path.Combine(_env.ContentRootPath, "currentsoldiers.json");
+            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            System.IO.File.WriteAllText(currentSoldiersFile, json);
         }
 
 
         private async Task<int> CalculateCurrentSoldiers(long fromTimestamp, long toTimestamp, string checkInCamera, string checkOutCamera, string locationId)
         {
             await UpdateCurrentSoldiersFromEvents(fromTimestamp, toTimestamp, checkInCamera, checkOutCamera, locationId);
-            var currentSoldiers = LoadCurrentSoldiers();
+            //var currentSoldiers = LoadCurrentSoldiers();
+            //return currentSoldiers.Count;
+
+            var data = LoadCurrentSoldiersData();
+            var currentSoldiers = data.Soldiers;
             return currentSoldiers.Count;
         }
         private async Task UpdateCurrentSoldiersFromEvents(long fromTimestamp, long toTimestamp, string checkInCamera, string checkOutCamera, string locationId)
         {
+            var data = LoadCurrentSoldiersData();
+            var currentSoldiers = data.Soldiers;
+            long lastProcessed = data.LastProcessedTimestamp;
+
+            long effectiveFrom = Math.Max(lastProcessed, fromTimestamp);
+
+            //cũ
             var staffList = await _context.Staff
                 .Where(s => s.IdTypePerson.HasValue && (s.IdTypePerson.Value == 0 || s.IdTypePerson.Value == 2))
                 .ToListAsync();
+            //var filter = Builders<eventLog>.Filter.And(
+            //    Builders<eventLog>.Filter.Gte(x => x.time_stamp, fromTimestamp),
+            //    Builders<eventLog>.Filter.Lte(x => x.time_stamp, toTimestamp),
+            //    Builders<eventLog>.Filter.Eq(x => x.locationId, locationId),
+            //    Builders<eventLog>.Filter.In(x => x.sourceID, new[] { checkInCamera, checkOutCamera })
+            //);
             var filter = Builders<eventLog>.Filter.And(
-                Builders<eventLog>.Filter.Gte(x => x.time_stamp, fromTimestamp),
+                Builders<eventLog>.Filter.Gt(x => x.time_stamp, effectiveFrom), // Sửa Gte thành Gt và dùng effectiveFrom
                 Builders<eventLog>.Filter.Lte(x => x.time_stamp, toTimestamp),
                 Builders<eventLog>.Filter.Eq(x => x.locationId, locationId),
                 Builders<eventLog>.Filter.In(x => x.sourceID, new[] { checkInCamera, checkOutCamera })
@@ -199,7 +236,7 @@ namespace WebReport78.Controllers
                 .SortBy(x => x.time_stamp)
                 .ToListAsync();
 
-            var currentSoldiers = LoadCurrentSoldiers();
+            //var currentSoldiers = LoadCurrentSoldiers();
 
             foreach (var record in records)
             {
@@ -239,13 +276,18 @@ namespace WebReport78.Controllers
                 }
             }
 
-            SaveCurrentSoldiers(currentSoldiers);
+            //SaveCurrentSoldiers(currentSoldiers);
+            data.Soldiers = currentSoldiers;
+            data.LastProcessedTimestamp = toTimestamp;
+            SaveCurrentSoldiersData(data);
         }
 
         private async Task<List<CurrentSoldier>> GetCurrentSoldiers(long fromTimestamp, long toTimestamp, string checkInCamera, string checkOutCamera, string locationId)
         {
             await UpdateCurrentSoldiersFromEvents(fromTimestamp, toTimestamp, checkInCamera, checkOutCamera, locationId);
-            return LoadCurrentSoldiers();
+            //return LoadCurrentSoldiers();
+            var data = LoadCurrentSoldiersData();
+            return data.Soldiers;
         }
 
         [HttpPost]
@@ -301,7 +343,9 @@ namespace WebReport78.Controllers
                 return Json(new { success = false, message = "Không tìm thấy quân nhân với mã định danh này." });
             }
 
-            var currentSoldiers = LoadCurrentSoldiers();
+            //var currentSoldiers = LoadCurrentSoldiers();
+            var data = LoadCurrentSoldiersData();
+            var currentSoldiers = data.Soldiers;
             if (!currentSoldiers.Any(s => s.UserGuid_cur == userGuid))
             {
                 currentSoldiers.Add(new CurrentSoldier
@@ -312,7 +356,9 @@ namespace WebReport78.Controllers
                     Gender_cur = gender,
                     PhoneNumber_cur = phone
                 });
-                SaveCurrentSoldiers(currentSoldiers);
+                //SaveCurrentSoldiers(currentSoldiers);
+                data.Soldiers = currentSoldiers;
+                SaveCurrentSoldiersData(data);
                 return Json(new { success = true, message = "Đã thêm quân nhân." });
             }
             return Json(new { success = false, message = "Quân nhân đã tồn tại." });
@@ -321,12 +367,16 @@ namespace WebReport78.Controllers
         [HttpPost]
         public IActionResult RemoveCurrentSoldier(string userGuid)
         {
-            var currentSoldiers = LoadCurrentSoldiers();
+            //var currentSoldiers = LoadCurrentSoldiers();
+            var data = LoadCurrentSoldiersData();
+            var currentSoldiers = data.Soldiers;
             var soldier = currentSoldiers.FirstOrDefault(s => s.UserGuid_cur == userGuid);
             if (soldier != null)
             {
                 currentSoldiers.Remove(soldier);
-                SaveCurrentSoldiers(currentSoldiers);
+                //SaveCurrentSoldiers(currentSoldiers);
+                data.Soldiers = currentSoldiers;
+                SaveCurrentSoldiersData(data);
 
                 TempData["Success"] = "Đã xóa quân nhân.";
                 return Json(new { success = true, message = "Đã xóa quân nhân." });
@@ -335,25 +385,25 @@ namespace WebReport78.Controllers
             return Json(new { success = false, message = "Không tìm thấy quân nhân." });
         }
 
-        [HttpPost]
-        public async Task<IActionResult> InitializeCurrentSoldiers()
-        {
-            var soldiers = await _context.Staff
-                .Where(s => s.IdTypePerson.HasValue && (s.IdTypePerson.Value == 0 || s.IdTypePerson.Value == 2))
-                .ToListAsync();
+        //[HttpPost]
+        //public async Task<IActionResult> InitializeCurrentSoldiers()
+        //{
+        //    var soldiers = await _context.Staff
+        //        .Where(s => s.IdTypePerson.HasValue && (s.IdTypePerson.Value == 0 || s.IdTypePerson.Value == 2))
+        //        .ToListAsync();
 
-            var currentSoldiers = soldiers.Select(staff => new CurrentSoldier
-            {
-                UserGuid_cur = staff.GuidStaff,
-                Name_cur = staff.Name,
-                IdCard_cur = staff.DocumentNumber,
-                Gender_cur = staff.Gender == 1 ? "Male" : "Female",
-                PhoneNumber_cur = staff.Phone ?? ""
-            }).ToList();
+        //    var currentSoldiers = soldiers.Select(staff => new CurrentSoldier
+        //    {
+        //        UserGuid_cur = staff.GuidStaff,
+        //        Name_cur = staff.Name,
+        //        IdCard_cur = staff.DocumentNumber,
+        //        Gender_cur = staff.Gender == 1 ? "Male" : "Female",
+        //        PhoneNumber_cur = staff.Phone ?? ""
+        //    }).ToList();
 
-            SaveCurrentSoldiers(currentSoldiers);
-            return Ok("Đã khởi tạo danh sách quân số.");
-        }
+        //    SaveCurrentSoldiers(currentSoldiers);
+        //    return Ok("Đã khởi tạo danh sách quân số.");
+        //}
 
         private async Task<List<Staff>> GetCurrentGuests(DateTime dateFilter)
         {
@@ -530,7 +580,10 @@ namespace WebReport78.Controllers
                     }
                     else if (filterType == "CurrentSoldiers")
                     {
-                        var currentSoldiers = LoadCurrentSoldiers();
+
+                        //var currentSoldiers = LoadCurrentSoldiers();
+                        var dataSoldiers = LoadCurrentSoldiersData(); // Sửa ở đây
+                        var currentSoldiers = dataSoldiers.Soldiers;
                         data = currentSoldiers.Select(s => new eventLog
                         {
                             Name = s.Name_cur,
