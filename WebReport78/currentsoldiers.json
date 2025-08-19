@@ -1,26 +1,5 @@
 [
   {
-    "UserGuid_cur": "a71249260dc941ba82f289a03531566a",
-    "Name_cur": "Trang",
-    "IdCard_cur": "20041104",
-    "Gender_cur": "Female",
-    "PhoneNumber_cur": ""
-  },
-  {
-    "UserGuid_cur": "ff455ec98ff740a38132edfd7f9c2794",
-    "Name_cur": "V\u1ECBnh",
-    "IdCard_cur": "912345678",
-    "Gender_cur": "Male",
-    "PhoneNumber_cur": "4567892"
-  },
-  {
-    "UserGuid_cur": "df751c79451e4ecb997fe6f029c9cf23",
-    "Name_cur": "Hi\u1EBFu",
-    "IdCard_cur": "",
-    "Gender_cur": "Male",
-    "PhoneNumber_cur": ""
-  },
-  {
     "UserGuid_cur": "28d273500a684e8283b4e138325e928b",
     "Name_cur": "Duy M\u1EA1nh",
     "IdCard_cur": "",
@@ -31,6 +10,13 @@
     "UserGuid_cur": "4b85888d97cb4b41a6548658d4b10f80",
     "Name_cur": "L\u01B0\u01A1ng \u0110\u1EE9c To\u00E0n",
     "IdCard_cur": null,
+    "Gender_cur": "Female",
+    "PhoneNumber_cur": ""
+  },
+  {
+    "UserGuid_cur": "a71249260dc941ba82f289a03531566a",
+    "Name_cur": "Trang",
+    "IdCard_cur": "20041104",
     "Gender_cur": "Female",
     "PhoneNumber_cur": ""
   }
