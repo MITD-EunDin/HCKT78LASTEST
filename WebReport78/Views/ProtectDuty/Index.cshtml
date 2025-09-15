@@ -10,6 +10,8 @@
 @Html.Partial("Create")
 <!--Import file xlsx, xls-->
 @Html.Partial("ImportFile")
+
+@await Html.PartialAsync("_LoadingData")
 <div class="row">
 
     <!-- Sidebar -->

@@ -23,5 +23,8 @@ namespace WebReport78.Repositories
 
         // Tìm nhân viên theo DocumentNumber
         Task<Staff> GetStaffByDocumentNumberAsync(string idCard);
+
+        //tổng số người có trong db cả loại 0 1 2 3 4
+        //Task<List<Staff>> GetTotalEmployeeAsync();
     }
 }

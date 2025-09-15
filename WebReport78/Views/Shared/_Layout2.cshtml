@@ -76,7 +76,7 @@
                 if (role === "1" || role === "2" || role === "3") {
                     menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "ProtectDuty" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "ProtectDuty")">Trực Ban</a></li>');
                     menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "InOut" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "InOut")">Vào/Ra</a></li>');
-                    menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "LprReport" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "LprReport")">Dữ liệu biển số</a></li>');
+                    menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "LprReport" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "LprReport")">Biển số</a></li>');
                     menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "WordRp" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "WordRp")">Báo cáo</a></li>');
                 }
                 // Thêm logic cho vai trò khác nếu cần

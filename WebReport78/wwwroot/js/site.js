@@ -39,6 +39,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 .catch(error => console.error('Lỗi khi load modal Edit:', error));
         });
     });
+
+    $('#searchDuty').on('click', function () {
+        $('#loadingOverlay').show(); // Hiện overlay
+    });
+
+    // Khi trang load xong thì ẩn overlay
+    $(window).on('load', function () {
+        $('#loadingOverlay').hide();
+    });
 });
 
 // NGĂN XÓA GIÁ TRỊ Ô FORMDATE VÀ TO DATE TRONG VIEW INOUT

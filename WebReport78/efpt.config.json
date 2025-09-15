@@ -1,6 +1,6 @@
 ﻿{
    "CodeGenerationMode": 4,
-   "ContextClassName": "H2XSmartContext",
+   "ContextClassName": "XGuardContext",
    "ContextNamespace": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
@@ -16,15 +16,11 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[dbo].[tbl_Gateway]",
+         "Name": "[dbo].[Department]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[tbl_Gateway_Member]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[tbl_SSO_User]",
+         "Name": "[dbo].[Organization]",
          "ObjectType": 0
       }
    ],
