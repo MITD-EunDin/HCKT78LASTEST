@@ -40,15 +40,13 @@
 ├─────── _ExportReport.cshtml
 ├── appsettings.json
 ├── efpt.config.json
-├── Program.cs
-└── settingcamera.json                  // thay source_id bằng source_id của camera nhận diện tương ứng
+└──Program.cs 
 ```
 
 # CÁC PHẦN LƯU Ý
 
 - Sửa connectstring và database name trong appsetting.json phần MongoDb (ĐÃ SỬA ĐÚNG THEO H2Xsmart)
 - Sửa DbWeSmart.cs trong phần Models sao cho đúng tên Collection của Eventlog (ĐÃ SỬA)
-- Thay source_id trong settingcamera.json thành souce_id của camera nhận diện tương ứng (ĐÃ SỬA - chưa sửa camera nhận biển)
 - (LƯU Ý)Trong Controllers -> InOutController.cs, LprReportController.cs hàm ExReport phần [var folder = @"D:\excel"] SỬA CHO ĐÚNG ĐƯỜNG ĐÃN file Template Excel mẫu
 
 # InOut (Models: ItemModel(lưu dữ liệu ra view), eventLog, source, staff)
@@ -66,52 +64,14 @@
 
 - hiện những sự kiện biển số và cảnh báo biển mặt không khớp
 - có thể xuất báo cáo biển số
+- cảnh báo biển số không khớp: lấy sự kiện trước event_type = 101 
 
-# settingcamera.json (ĐIÊN GW VÀ CAMERA ĐÚNG BÊN 78 CÒN CAMERA BIỂN CHƯA BIẾN THÔNG SỐ)
-
-```
-{
-  "location_id": "684836ee33b74fae83ce951f7b731336", // gw của 78
-  "cameras": [
-{
-  "source_id": "dd49fe1e830d48e088b6a8e85979b52f",
-  "name": "Camera CheckIn",
-  "type": "in"
-},
-{
-  "source_id": "cf3e28bc561f41a2968369a99f66e148",
-  "name": "Camera CheckOut",
-  "type": "out"
-}
-]
-]
-"camerasLprPair": [
-  {
-    "source_id": "cf3e28bc561f41a2968369a99f66e148",
-    "name": "CameraFrLpr",
-    "type": "face"
-  },
-  {
-    "source_id": "1e35ed058dab4f3ba22d259a20866cd9",
-    "name": "CameraLpr",
-    "type": "lpr"
-  }
-}
-```
 
 # logic trực báo cáo vào ra (đã thêm chức năng nhập xóa quân số hiện tại[chỉ cần nhập document_number press enter là các trường khác tự động điền])
 
-- E lấy chỉ lấy những dữ liệu theo location_id trong settingcamera.json
 - Tổng quân số đêm tất cả người trong bảng staff
 - Quân số hiện tại tính theo camera, check in ++, check out -- ;
 - Số Khách tính theo datecreate == today và idTypePerson == 3 trong Xguard
 - Cảnh báo đi muộn về sớm tính theo id_type_person : == 0 (các sếp) không tính, == 2 gán đi muộn về sớm
   - đi muộn: sau 8h30 gán đi muộn
   - về sớm: trước 17h30 gán về sớm nhưng trước 17h30 checkin thì bỏ gán về sớm
-
-# logic biển số (đã sửa nhập theo cặp camera)
-
-- lấy những bản ghi event_type = 25
-- cảnh báo biển số không khớp: lấy sự kiện trước event_type = 25 đó 1s thì sẽ là event_type = 1 (vì theo cái logic nhận mặt chụp biển của a nên e nghĩ vậy)
-  - từ sự kiện biển truy xuất vào bảng vehicle để lấy owner , rồi so sánh owner với event_name của sự kiện trước đó 1s
-  - nếu owner == event_name thì khớp, != event_name thì cảnh báo không khớp
