@@ -1,32 +1,32 @@
 [
   {
+    "UserGuid": "aac8caa3538e4dd9b36383e3ec3bea16",
+    "LastActionTimestamp": 1757913720,
+    "LastActionType": 2
+  },
+  {
     "UserGuid": "ff455ec98ff740a38132edfd7f9c2794",
-    "LastActionTimestamp": 1757655789,
+    "LastActionTimestamp": 1757914089,
+    "LastActionType": 2
+  },
+  {
+    "UserGuid": "5ca1f0a649a5414ebce3fdc31fcf46ab",
+    "LastActionTimestamp": 1757914017,
+    "LastActionType": 2
+  },
+  {
+    "UserGuid": "4b85888d97cb4b41a6548658d4b10f80",
+    "LastActionTimestamp": 1757908530,
     "LastActionType": 2
   },
   {
     "UserGuid": "3153a3d16aa943629a10cbc1c81fc870",
-    "LastActionTimestamp": 1757649007,
-    "LastActionType": 2
+    "LastActionTimestamp": 1757906046,
+    "LastActionType": 1
   },
   {
     "UserGuid": "a71249260dc941ba82f289a03531566a",
-    "LastActionTimestamp": 1757660936,
-    "LastActionType": 2
-  },
-  {
-    "UserGuid": "aac8caa3538e4dd9b36383e3ec3bea16",
-    "LastActionTimestamp": 1757654819,
-    "LastActionType": 1
-  },
-  {
-    "UserGuid": "4b85888d97cb4b41a6548658d4b10f80",
-    "LastActionTimestamp": 1757569563,
-    "LastActionType": 1
-  },
-  {
-    "UserGuid": "df751c79451e4ecb997fe6f029c9cf23",
-    "LastActionTimestamp": 1757654830,
+    "LastActionTimestamp": 1757901665,
     "LastActionType": 1
   }
 ]
