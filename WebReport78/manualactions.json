@@ -6,13 +6,13 @@
   },
   {
     "UserGuid": "ff455ec98ff740a38132edfd7f9c2794",
-    "LastActionTimestamp": 1757914089,
+    "LastActionTimestamp": 1757921885,
     "LastActionType": 2
   },
   {
     "UserGuid": "5ca1f0a649a5414ebce3fdc31fcf46ab",
-    "LastActionTimestamp": 1757920613,
-    "LastActionType": 1
+    "LastActionTimestamp": 1757921143,
+    "LastActionType": 2
   },
   {
     "UserGuid": "4b85888d97cb4b41a6548658d4b10f80",
@@ -21,12 +21,12 @@
   },
   {
     "UserGuid": "3153a3d16aa943629a10cbc1c81fc870",
-    "LastActionTimestamp": 1757917130,
-    "LastActionType": 2
+    "LastActionTimestamp": 1757924866,
+    "LastActionType": 1
   },
   {
     "UserGuid": "a71249260dc941ba82f289a03531566a",
-    "LastActionTimestamp": 1757901665,
+    "LastActionTimestamp": 1757923010,
     "LastActionType": 1
   }
 ]

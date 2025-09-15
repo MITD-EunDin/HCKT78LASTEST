@@ -13,9 +13,13 @@ public partial class XGuardContext : DbContext
     {
     }
 
+    public virtual DbSet<Department> Departments { get; set; }
+
     public virtual DbSet<ConverTime> DutyShifts { get; set; }
 
     public virtual DbSet<Identity> Identities { get; set; }
+
+    public virtual DbSet<Organization> Organizations { get; set; }
 
     public virtual DbSet<Source> Sources { get; set; }
 
@@ -27,6 +31,36 @@ public partial class XGuardContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Department>(entity =>
+        {
+            entity.HasKey(e => e.IdDept);
+
+            entity.ToTable("Department");
+
+            entity.Property(e => e.IdDept).HasColumnName("id_dept");
+            entity.Property(e => e.Address)
+                .HasMaxLength(200)
+                .HasColumnName("address");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("description");
+            entity.Property(e => e.IdOrg).HasColumnName("id_org");
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .HasColumnName("name");
+            entity.Property(e => e.OrderNo).HasColumnName("order_no");
+
+            entity.HasOne(d => d.IdOrgNavigation).WithMany(p => p.Departments)
+                .HasForeignKey(d => d.IdOrg)
+                .HasConstraintName("FK_Department_Organization");
+        });
+
         modelBuilder.Entity<ConverTime>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__DutyShif__3213E83F9FA6CD8D");
@@ -89,6 +123,36 @@ public partial class XGuardContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<Organization>(entity =>
+        {
+            entity.HasKey(e => e.IdOrg);
+
+            entity.ToTable("Organization");
+
+            entity.Property(e => e.IdOrg).HasColumnName("id_org");
+            entity.Property(e => e.Address)
+                .HasMaxLength(200)
+                .HasColumnName("address");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .HasColumnName("code");
+            entity.Property(e => e.DateCreated)
+                .HasColumnType("datetime")
+                .HasColumnName("date_created");
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("description");
+            entity.Property(e => e.EndFloor).HasColumnName("end_floor");
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .HasColumnName("name");
+            entity.Property(e => e.OrderNo).HasColumnName("order_no");
+            entity.Property(e => e.StartFloor).HasColumnName("start_floor");
+            entity.Property(e => e.Website)
+                .HasMaxLength(50)
+                .HasColumnName("website");
         });
 
         modelBuilder.Entity<Source>(entity =>
@@ -228,6 +292,14 @@ public partial class XGuardContext : DbContext
                 .HasColumnName("position");
             entity.Property(e => e.StartTime).HasColumnName("start_time");
             entity.Property(e => e.Status).HasColumnName("status");
+
+            entity.HasOne(d => d.IdDeptNavigation).WithMany(p => p.Staff)
+                .HasForeignKey(d => d.IdDept)
+                .HasConstraintName("FK_StaffInfo_Department");
+
+            entity.HasOne(d => d.IdOrgNavigation).WithMany(p => p.Staff)
+                .HasForeignKey(d => d.IdOrg)
+                .HasConstraintName("FK_StaffInfo_Organization");
         });
 
         modelBuilder.Entity<StaffIdentity>(entity =>

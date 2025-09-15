@@ -7,7 +7,7 @@
    "MinimumProductVersion": "2.6.0",
    "ModelNamespace": null,
    "OutputContextPath": null,
-   "OutputPath": "Model2s",
+   "OutputPath": "Models",
    "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "WebReport78",
    "Schemas": null,
@@ -20,7 +20,31 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[DutyShift]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Identity]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Organization]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Source]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Staff]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Staff_Identity]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Vehicle]",
          "ObjectType": 0
       }
    ],

@@ -1,12 +1,5 @@
 [
   {
-    "UserGuid_cur": "ff455ec98ff740a38132edfd7f9c2794",
-    "Name_cur": "V\u1ECBnh",
-    "IdCard_cur": "912345678",
-    "Gender_cur": "Nam",
-    "PhoneNumber_cur": "9989851541565"
-  },
-  {
     "UserGuid_cur": "4b85888d97cb4b41a6548658d4b10f80",
     "Name_cur": "L\u01B0\u01A1ng \u0110\u1EE9c To\u00E0n",
     "IdCard_cur": "512346789",
@@ -14,17 +7,24 @@
     "PhoneNumber_cur": "1234567893"
   },
   {
-    "UserGuid_cur": "3153a3d16aa943629a10cbc1c81fc870",
-    "Name_cur": "Daniel Nguy\u1EC5n",
-    "IdCard_cur": "123456789",
-    "Gender_cur": "Nam",
-    "PhoneNumber_cur": "1665155656"
-  },
-  {
     "UserGuid_cur": "aac8caa3538e4dd9b36383e3ec3bea16",
     "Name_cur": "Dienws",
     "IdCard_cur": "213456789",
     "Gender_cur": "N\u1EEF",
     "PhoneNumber_cur": "6598561366"
+  },
+  {
+    "UserGuid_cur": "5ca1f0a649a5414ebce3fdc31fcf46ab",
+    "Name_cur": "Dung",
+    "IdCard_cur": "312456789",
+    "Gender_cur": "N\u1EEF",
+    "PhoneNumber_cur": "981565686566"
+  },
+  {
+    "UserGuid_cur": "ff455ec98ff740a38132edfd7f9c2794",
+    "Name_cur": "V\u1ECBnh",
+    "IdCard_cur": "912345678",
+    "Gender_cur": "Nam",
+    "PhoneNumber_cur": "9989851541565"
   }
 ]

@@ -77,6 +77,10 @@ public partial class Staff
 
     public DateTime? DateCreated { get; set; }
 
+    public virtual Department IdDeptNavigation { get; set; }
+
+    public virtual Organization IdOrgNavigation { get; set; }
+
     public virtual ICollection<StaffIdentity> StaffIdentities { get; set; } = new List<StaffIdentity>();
 
     public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();

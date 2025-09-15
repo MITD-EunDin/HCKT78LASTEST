@@ -40,15 +40,8 @@
                         <option value="Early" selected="@(ViewBag.Filter == "Early")">Về Sớm</option>
                         <option value="CurrentSoldiers" selected="@(ViewBag.Filter == "CurrentSoldiers")">Quân số hiện tại</option>
                         <option value="CurrentGuests" selected="@(ViewBag.Filter == "CurrentGuests")">Số khách</option>
-                        <option value="LiLo" selected="@(ViewBag.Filter == "LiLo")">FirstIn/LastOut</option>
-
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label for="toDate" class="form-label">Nhân sự</label>
-                    <input type="checkbox" id="nameEployee" name="nameEployee" class="form-control" />
-                </div>
-
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" id="searchBtn" class="btn btn-primary w-100">
                     Load dữ liệu

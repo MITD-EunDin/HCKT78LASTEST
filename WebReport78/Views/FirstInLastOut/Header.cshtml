@@ -1,0 +1,35 @@
+﻿@{
+    // Đảm bảo ViewBag.FromDate và ViewBag.ToDate là DateTime hoặc có giá trị mặc định
+    var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.Today;
+    var toDate = ViewBag.ToDate as DateTime? ?? DateTime.Today.AddHours(23).AddMinutes(59);
+    // Định dạng cho datetime-local (yyyy-MM-ddTHH:mm)
+    var fromDateTime = fromDate.ToString("dd-MM-yyyy HH:mm");
+    var toDateTime = toDate.ToString("dd-MM-yyyy HH:mm");
+    // yyyy - MM - dd HH: mm
+}
+
+<div class="mb-4">
+    <form asp-action="Index" method="get">
+        <div class="row align-items-end">
+                <div class="col-md-2">
+                    <label for="fromDate" class="form-label">Từ:</label>
+                    <input type="datetime" id="fromDate" name="fromDate" class="form-control" value="@fromDateTime" required />
+                </div>
+                <div class="col-md-2">
+                    <label for="toDate" class="form-label">Đến:</label>
+                    <input type="datetime" id="toDate" name="toDate" class="form-control" value="@toDateTime" required />
+                </div>
+        </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" id="searchFiLO" class="btn btn-primary w-100">
+                    Load dữ liệu
+                </button>
+                <button type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#exportModal"
+                        class="btn btn-success w-100">
+                    Xuất Excel
+                </button>
+            </div>
+    </form>
+</div>
