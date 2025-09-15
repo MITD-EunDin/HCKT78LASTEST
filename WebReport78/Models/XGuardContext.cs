@@ -29,7 +29,7 @@ public partial class XGuardContext : DbContext
     {
         modelBuilder.Entity<ConverTime>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__DutyShif__3213E83FD7C7E2A9");
+            entity.HasKey(e => e.Id).HasName("PK__DutyShif__3213E83F9FA6CD8D");
 
             entity.ToTable("DutyShift");
 

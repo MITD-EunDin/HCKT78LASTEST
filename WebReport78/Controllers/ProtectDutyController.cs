@@ -60,7 +60,8 @@ namespace WebReport78.Controllers
         {
             // hiện nút lưu khi import file
             ViewData["CanSave"] = false;
-
+            var role = HttpContext.Session.GetString("Role");
+            ViewData["roleUser"] = role;
             // disable nút sửa xóa khi tháng đã qua
             bool disableSave = false;
 
@@ -80,11 +81,21 @@ namespace WebReport78.Controllers
                     disableSave = true;
                 }
 
+
                 var duties = _context.DutyShifts
                     .Where(d => d.MothYearImport.Year == parsedMonthYear.Year &&
                                 d.MothYearImport.Month == parsedMonthYear.Month)
                     .OrderBy(d => d.Dateduty)
                     .ToList();
+
+                //if (role == "3")
+                //{
+                //    // Kiểm tra Dateduty có phải hôm nay không
+                //    //DateOnly today = DateOnly.FromDateTime(DateTime.Today); // Lấy ngày hiện tại (không giờ)
+                //    //if (model.Dateduty != today)
+                //    var today = DateOnly.FromDateTime(DateTime.Today);
+                //    if 
+                //}
 
                 ViewData["MonthYearImport"] = monthYearImport;
                 ViewData["DisableSave"] = disableSave;
@@ -283,10 +294,18 @@ namespace WebReport78.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(ConverTime model, string monthYearImport)
         {
-            if (!ModelState.IsValid)
-            {
-                return PartialView("Edit", model); // Trả về partial view nếu validation thất bại
-            }
+            //// phân quyền
+            //var role = HttpContext.Session.GetString("Role");
+            //ViewData["roleUser"] = role;
+            //if (string.IsNullOrEmpty(role) || (role != "1" && role != "2" && role != "3"))
+            //{
+            //    return Unauthorized();
+            //}
+
+            //if (!ModelState.IsValid)
+            //{
+            //    return PartialView("Edit", model); // Trả về partial view nếu validation thất bại
+            //}
             try
             {
                 if (!DateTime.TryParseExact(monthYearImport, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out var parsedMonthYear))
@@ -301,6 +320,16 @@ namespace WebReport78.Controllers
                 {
                     return NotFound();
                 }
+                //if (role == "3")
+                //{
+                //    // Kiểm tra Dateduty có phải hôm nay không
+                //    DateOnly today = DateOnly.FromDateTime(DateTime.Today); // Lấy ngày hiện tại (không giờ)
+                //    if (model.Dateduty != today)
+                //    {
+                //        ModelState.AddModelError("Dateduty", "Chỉ được sửa ngày ca trực nếu là hôm nay.");
+                //        return PartialView("Edit", model);
+                //    }
+                //}
 
                 existingDuty.Dateduty = model.Dateduty;
                 existingDuty.Fullname = model.Fullname;

@@ -2,7 +2,7 @@
 {
     public static class TimeStampHelper
     {
-        public static string ConvertTimestamp(int timestamp)
+        public static string ConvertTimestamp(long timestamp)
         {
             // chuyển sang datetime
             DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(timestamp)

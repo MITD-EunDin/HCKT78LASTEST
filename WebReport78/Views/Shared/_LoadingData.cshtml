@@ -1,0 +1,38 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+        <div class="spinner-border" role="status"></div>
+        <div>Đang tải dữ liệu...</div>
+    </div>
+</div>
+
+<style>
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-spinner {
+        color: white;
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 10px;
+    }
+</style>

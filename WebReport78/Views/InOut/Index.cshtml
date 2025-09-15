@@ -14,6 +14,7 @@
 <div class="row">
     <div>
         @await Html.PartialAsync("_toastNotice")
+        @await Html.PartialAsync("_LoadingData")
         <!-- Header section -->
         @Html.Partial("Header")
         <!--ExportReport-->
@@ -21,7 +22,7 @@
         <!--AddCurrentSolider-->
         @Html.Partial("AddCurSoliders")
         <!-- Table section -->
-        <div class="table-responsive table-scroll" style="height: 70vh;">
+        <div class="table-responsive" style="height: 70vh;">
             <table class="table table-bordered table-hover">
                 <thead class="table-light sticky-top">
                     <tr>
@@ -38,7 +39,7 @@
                             <th>Mã định danh</th>
                             <th>Giới tính</th>
                             <th>Số điện thoại</th>
-                            <th>Hành động</th>
+                            <th class="col-button_action">Hành động</th>
                         }
                         else
                         {
@@ -46,7 +47,11 @@
                             <th>Thời gian</th>
                             <th>Loại ra/vào</th>
                             <th>Camera nhận dạng</th>
-                            <th>Sự kiện</th>
+                            <th class="col-time_LE">Sự kiện</th>
+                            if (ViewBag.Filter == "All")
+                            {
+                                <th class="col-outTime">Out Time</th>
+                            }
                         }
                     </tr>
                 </thead>
@@ -72,7 +77,7 @@
                                     <td>
                                         <form data-action="remove" method="post" style="display:inline;">
                                             <input type="hidden" name="userGuid" value="@item.userGuid" />
-                                            <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                            <button type="submit" class="btn btn-danger btn-sm">Check Out</button>
                                         </form>
                                     </td>
                                 }
@@ -93,6 +98,10 @@
                                         }
 
                                     </td>
+                                    if (ViewBag.Filter == "All")
+                                    {
+                                        <td clas>@item.count_duration</td>
+                                    }
                                 }
                             </tr>
                         }
@@ -121,12 +130,12 @@
 </div>
 
 <!-- Phân trang -->
-@if (totalPages > 1 && ViewBag.Filter != "CurrentSoldiers" && ViewBag.Filter != "CurrentGuests")
+@if (totalPages > 1 )
 {
     <nav aria-label="Page navigation" class="mt-3">
         <ul class="pagination justify-content-center">
             <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = currentPage - 1, pageSize = pageSize })">Trước</a>
+                <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = currentPage - 1, pageSize = pageSize })">⏮️</a>
             </li>
             @for (int i = 1; i <= totalPages; i++)
             {
@@ -135,143 +144,16 @@
                 </li>
             }
             <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = currentPage + 1, pageSize = pageSize })">Sau</a>
+                <a class="page-link" href="@Url.Action("Index", new { fromDate = fromDateTime, toDate = toDateTime, filterType = filterType, page = currentPage + 1, pageSize = pageSize })">⏭</a>
             </li>
         </ul>
     </nav>
 }
 </div>
 
-
-
-
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            // Sử dụng event delegation để đảm bảo sự kiện hoạt động với modal động
-            $(document).on('keypress', '#idCard', function (e) {
-                if (e.which === 13) {
-                    e.preventDefault();
-                    // Mở modal nếu chưa mở
-                    if (!$('#addCurSoliderModal').is(':visible')) {
-                        $('#addCurSoliderModal').modal('show');
-                    }
-
-                    var idCard = $(this).val().trim();
-                    if (!idCard) {
-                        $('#formMessage').text('Vui lòng nhập mã định danh.');
-                        return;
-                    }
-
-                    console.log('Sending AJAX with idCard:', idCard);
-                    console.log('Token:', $('input[name="__RequestVerificationToken"]').val());
-
-                    $.ajax({
-                        url: '@Url.Action("CheckIdCard", "InOut")',
-                        type: 'POST',
-                        data: {
-                            idCard: idCard,
-                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                        },
-                        success: function (response) {
-                            console.log('Response:', response);
-                            if (response.success) {
-                                $('#userGuid').val(response.data.userGuid_cur);
-                                $('#name').val(response.data.name_cur);
-                                $('#gender').val(response.data.gender_cur);
-                                $('#phone').val(response.data.phoneNumber_cur);
-                                $('#formMessage').text('').removeClass('text-danger').addClass('text-success');
-                            } else {
-                                $('#formMessage').text(response.message).removeClass('text-success').addClass('text-danger');
-                                $('#userGuid').val('');
-                                $('#name').val('');
-                                $('#gender').val('');
-                                $('#phone').val('');
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.log('AJAX Error:', error, xhr.responseText);
-                            $('#formMessage').text('Đã xảy ra lỗi khi kiểm tra mã định danh: ' + error).removeClass('text-success').addClass('text-danger');
-                            $('#userGuid').val('');
-                            $('#name').val('');
-                            $('#gender').val('');
-                            $('#phone').val('');
-                        }
-                    });
-                }
-            });
-
-            // Xử lý form submit để thêm quân nhân
-            $('#addSoldierForm').on('submit', function (e) {
-                e.preventDefault();
-                var form = $(this);
-
-                $.ajax({
-                    url: form.attr('action'),
-                    type: form.attr('method'),
-                    data: form.serialize(),
-                    success: function (response) {
-                        if (response.success) {
-                            $('#formMessage').text(response.message).removeClass('text-danger').addClass('text-success');
-                            form[0].reset();
-                            location.reload();
-                        } else {
-                            $('#formMessage').text(response.message).removeClass('text-success').addClass('text-danger');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.log('AJAX Error:', error, xhr.responseText);
-                        $('#formMessage').text('Đã xảy ra lỗi khi thêm quân nhân: ' + error).removeClass('text-success').addClass('text-danger');
-                    }
-                });
-            });
-
-            // Xử lý form xóa quân nhân
-            $(document).on('submit', 'form[data-action="remove"]', function (e) {
-                e.preventDefault();
-                var form = $(this);
-                var userGuid = form.find('input[name="userGuid"]').val();
-
-                console.log('Gửi yêu cầu xóa với userGuid:', userGuid);
-
-                $.ajax({
-                    url: '@Url.Action("RemoveCurrentSoldier", "InOut")',
-                    type: 'POST',
-                    data: {
-                        userGuid: userGuid,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                    },
-                    success: function (response) {
-                        console.log('Phản hồi từ server:', response);
-                        if (response.success) {
-                            $('#tableMessage')
-                                .text(response.message)
-                                .removeClass('text-danger')
-                                .addClass('text-success');
-                            // Xóa hàng khỏi bảng
-                            form.closest('tr').remove();
-                            // Cập nhật số lượng quân nhân hiện tại
-                            var soldierCurrent = parseInt($('#soldierCurrent').text()) - 1;
-                            $('#soldierCurrent').text(soldierCurrent);
-                        } else {
-                            $('#tableMessage')
-                                .text(response.message)
-                                .removeClass('text-success')
-                                .addClass('text-danger');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.log('Lỗi AJAX:', error, xhr.responseText);
-                        $('#tableMessage')
-                            .text('Đã xảy ra lỗi khi xóa quân nhân: ' + error)
-                            .removeClass('text-success')
-                            .addClass('text-danger');
-                    }
-                });
-            });
-
-        });
-
+        
 
     </script>
 }

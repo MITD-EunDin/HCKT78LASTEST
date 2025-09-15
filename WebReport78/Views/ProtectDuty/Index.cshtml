@@ -23,7 +23,7 @@
         <!-- Header section -->
          @Html.Partial("HeaderSection")
             <!--Body Danh sách lịch trực-->
-        <div class="table-responsive table-scroll">
+        <div class="table-responsive" style="height: 75vh;">
             <table class="table table-bordered table-hover">
                 <thead class="table-light sticky-top">
                     <tr>
@@ -50,15 +50,22 @@
                                 <td>@duty.Rankk</td>
                                 <td>@duty.Department</td>
                                 <td>@duty.Phonenumber</td>
-                                <td>
+                                <td class="duty_behavior">
+                                    @{
+                                        var role = (string)ViewData["roleUser"];
+                                        var isToday = duty.Dateduty == DateOnly.FromDateTime(DateTime.Today);
+                                        var isRole3 = role == "3";
+                                        var disableForRole3 = isRole3 && !isToday;
+                                        var isDisabled = disableSave || disableForRole3;
+                                    }
                                     <button class="btn btn-sm btn-warning edit-btn" data-id="@duty.Id"
-                                    @(disableSave ? "disabled" : "")>
+                                    @(isDisabled ? "disabled" : "")>
                                         Sửa
                                     </button>
-                                    <a asp-action="Delete" asp-controller="ProtectDuty" asp-route-id="@duty.Id"
+                                   <!-- <a asp-action="Delete" asp-controller="ProtectDuty" asp-route-id="@duty.Id"
                                        class="btn btn-sm btn-danger @(disableSave ? "disabled" : "")"
                                        >Xóa
-                                   </a>
+                                    </a>-->
                                 </td>
                             </tr>
                             countRow++;

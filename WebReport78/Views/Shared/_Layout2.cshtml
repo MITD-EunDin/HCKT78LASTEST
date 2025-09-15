@@ -1,0 +1,101 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebReport78</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WebReport78.styles.css" asp-append-version="true" />
+</head>
+<body>
+    @await Html.PartialAsync("_LoadingData")
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Auth" asp-action="Index">HCKT-Report</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1" id="menuItems">
+                        <!-- Menu sẽ được điền động bằng JavaScript -->
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                @if (!string.IsNullOrEmpty(HttpContextAccessor.HttpContext?.Session?.GetString("Email")))
+                                {
+                                    <span>@HttpContextAccessor.HttpContext.Session.GetString("Email")</span>
+                                }
+                                else
+                                {
+                                    <span>Chưa đăng nhập</span>
+                                }
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                                @if (!string.IsNullOrEmpty(HttpContextAccessor.HttpContext?.Session?.GetString("Email")))
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Auth" asp-action="Logout">Đăng xuất</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Auth" asp-action="Index">Đăng nhập</a></li>
+                                }
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        var removeSoldierUrl = '@Url.Action("RemoveCurrentSoldier", "InOut")';
+        var checkIdCardUrl = '@Url.Action("CheckIdCard", "InOut")';
+
+        // Hàm kiểm tra vai trò và hiển thị menu
+        $(document).ready(function () {
+            var role = '@HttpContextAccessor.HttpContext?.Session?.GetString("Role")';
+            var email = '@HttpContextAccessor.HttpContext?.Session?.GetString("Email")';
+            console.log("Session Email: ", email, "Role: ", role);
+            var menuItems = $("#menuItems");
+
+            if (role) {
+                // Hiển thị menu dựa trên vai trò
+                if (role === "1" || role === "2" || role === "3") {
+                    menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "ProtectDuty" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "ProtectDuty")">Trực Ban</a></li>');
+                    menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "InOut" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "InOut")">Vào/Ra</a></li>');
+                    menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "LprReport" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "LprReport")">Dữ liệu biển số</a></li>');
+                    menuItems.append('<li class="nav-item"><a class="nav-link text-dark @((ViewContext.RouteData.Values["Controller"]?.ToString() == "WordRp" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index") ? "active" : "")" href="@Url.Action("Index", "WordRp")">Báo cáo</a></li>');
+                }
+                // Thêm logic cho vai trò khác nếu cần
+            } else {
+                // Nếu chưa đăng nhập, chỉ hiển thị nút đăng nhập
+                menuItems.append('<li class="nav-item"><a class="nav-link text-dark" href="@Url.Action("Index", "Auth")">Đăng nhập</a></li>');
+            }
+
+            $(document).ready(function () {
+                $("#menuHeader").on("click", function () {
+                    $("#loadingOverlay").show();
+                })
+            });
+
+            $(window).on("load", function () {
+                $("loadingOverlay").hide();
+            })
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

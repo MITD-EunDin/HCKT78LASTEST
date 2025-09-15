@@ -8,6 +8,8 @@
         public string Source { get; set; }
         public string EndTime { get; set; }
 
+        public string OutTime { get; set; } // thời gian ra ngoài
+
         public string IdCard { get; set; }    // Dùng cho CurrentGuests và soliders
         public string Gender { get; set; }
 

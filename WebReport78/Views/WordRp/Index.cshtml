@@ -1,0 +1,27 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Báo cáo";
+}
+<h1>Đang phát triển...</h1>
+<form asp-action="ExportToWord" method="post">
+    <button type="submit"
+            class="btn btn-success w-100">
+        Xuất word
+    </button>
+    <input type="text" id="huhu" class="form-control border-0 border-bottom rounded-0 shadow-none" name="huhu" />
+    <input type="text" id="huhu" class="underline" name="huhu" />
+</form>
+<text id="SoldierCurrent">Quân số hiện tại: @ViewData["SoldierCurrent"]</text>
+<text id="SoldierTotal">Tổng quân số: @ViewData["SoldierTotal"]</text>
+
+<style>
+    input.underline {
+        border: none; /* bỏ viền mặc định */
+        border-bottom: 1px solid #000; /* chỉ giữ viền dưới */
+        outline: none; /* bỏ viền xanh khi focus */
+        padding: 4px 0; /* căn đẹp hơn */
+        background: transparent; /* nền trong suốt (nếu muốn) */
+    }
+</style>

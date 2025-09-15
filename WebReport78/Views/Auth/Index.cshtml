@@ -1,0 +1,67 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+@await Html.PartialAsync("_LoadingData")
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <h2 class="text-center">Đăng nhập hệ thống</h2>
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ViewBag.ErrorMessage
+            </div>
+        }
+        <form method="post" asp-action="Index" asp-controller="Auth" class="mt-4">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required />
+            </div>
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" class="form-control" id="password" name="password" required />
+            </div>
+            <button type="submit" id="logindata" class="btn btn-primary btn-block mt-3">Đăng nhập</button>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        // document.addEventListener("DOMContentLoaded", function () {
+        //     document.getElementById("logindata").onclick = function () {
+        //         document.getElementById("loadingOverLay").style.display = "flex";
+        //     }
+
+        //     $(window).on('load', function () {
+        //         $('#loadingOverlay').hide();
+        //     });
+        // });
+        $(document).ready(function () {
+            // Khi form bấm "Load dữ liệu"
+            $('#logindata').on('click', function () {
+                const email = $('#email').val().trim();
+                const password = $('#password').val().trim();
+
+                if (!email || !password) {
+                    e.preventDefault(); // Ngăn gửi form
+                    alert("Vui lòng nhập đầy đủ email và mật khẩu.");
+                    return;
+                }
+                 $('#loadingOverlay').show(); // Hiện overlay
+            });
+
+            // Khi trang load xong thì ẩn overlay
+            // $(window).on('load', function () {
+                if ($('.alert-danger').length > 0) {
+                    $('#loadingOverlay').hide();
+                }
+
+            //     $('#loadingOverlay').hide();
+            // });
+
+        });
+
+    </script>
+}

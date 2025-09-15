@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 namespace WebReport78.Models
 {
@@ -27,6 +28,9 @@ namespace WebReport78.Models
         [BsonElement("source_id")] 
         public string sourceID { get; set; }
 
+        [BsonElement("payload")]
+        public string payload { get; set; }
+
         [BsonElement("timestamp")]
         public int time_stamp { get; set; }
         public string formatted_date { get; set; } // format giá trị timestamp -> dd-mm-uy
@@ -34,13 +38,13 @@ namespace WebReport78.Models
         public string type_eventIO { get; set; } // lưu loại vào ra
         public string cameraGuid { get; set; } // lưu GUID gốc từ MongoDB
         public string cameraName { get; set; } // lưu tên hiển thị từ SQL
-
+        public string  count_duration { get; set; } // thời gian ra ngoài
         // đánh dấu vào ra
         public bool IsLate { get; set; }
         public bool IsLeaveEarly { get; set; }
 
-        public string Lpr { get; set; } // biển số hoặc sự kiện biển số mặt không khớp
-        public bool IsPushed { get; set; } // check biển mặt số khớp hay không khớp
+        //public string Lpr { get; set; } // biển số hoặc sự kiện biển số mặt không khớp
+        //public bool IsPushed { get; set; } // check biển mặt số khớp hay không khớp
 
         // dữ liệu của bảng số khách
         public string idCard { get; set; }

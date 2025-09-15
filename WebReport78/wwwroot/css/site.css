@@ -18,7 +18,7 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+/*  margin-bottom: 60px;*/
 }
 
 
@@ -45,5 +45,19 @@ body {
 }
 .nav-link.active {
     font-weight: bold;
-    color: var(--bs-blue) !important;
+    color: var(--bs-blue) !important;   
+}
+/* VIEW INOUT*/
+.col-outTime {
+    width: 110px;
+}
+.col-time_LE {
+    width: 130px;
+}
+.col-button_action {
+    width: 110px;
+}
+
+.duty_behavior {
+    width: 105px;
 }

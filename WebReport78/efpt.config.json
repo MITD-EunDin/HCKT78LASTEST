@@ -1,13 +1,13 @@
 ﻿{
    "CodeGenerationMode": 4,
-   "ContextClassName": "XGuardContext",
+   "ContextClassName": "H2XSmartContext",
    "ContextNamespace": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
    "MinimumProductVersion": "2.6.0",
    "ModelNamespace": null,
    "OutputContextPath": null,
-   "OutputPath": "Models",
+   "OutputPath": "Model2s",
    "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "WebReport78",
    "Schemas": null,
@@ -16,27 +16,15 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[dbo].[DutyShift]",
+         "Name": "[dbo].[tbl_Gateway]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Identity]",
+         "Name": "[dbo].[tbl_Gateway_Member]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Source]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Staff]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Staff_Identity]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Vehicle]",
+         "Name": "[dbo].[tbl_SSO_User]",
          "ObjectType": 0
       }
    ],
