@@ -18,5 +18,10 @@
             // Chuyển đổi DateTime sang Unix timestamp 
             return (long)(dateTime.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
+
+        public static DateTime ConvertTimestampToDateTime(long timestamp)
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().DateTime;
+        }
     }
 }

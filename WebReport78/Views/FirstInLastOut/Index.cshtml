@@ -1,13 +1,18 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<WebReport78.Models.eventLog> 
 @{
+    
+    var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.Today;
+    var toDate = ViewBag.ToDate as DateTime? ?? DateTime.Today.AddHours(23).AddMinutes(59);
+    var fromDateTime = fromDate.ToString("yyyy-MM-ddTHH:mm");
+    var toDateTime = toDate.ToString("yyyy-MM-ddTHH:mm");
+
+    var organizations = ViewBag.Organizations as List<Organization> ?? new List<Organization>();
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+    var employees = ViewBag.Employees as List<Staff> ?? new List<Staff>();
 }
 <div class="row">
     <div>
-        <!-- Header section -->
-        @Html.Partial("Header")
-        <!-- Table section -->
+    @Html.Partial("Header")
         <div class="table-responsive" style="height: 70vh;">
             <table class="table table-bordered table-hover">
                 <thead class="table-light sticky-top">
@@ -19,12 +24,34 @@
                     </tr>
                 </thead>
                 <tbody id="inOutTableBody">
-                    @if (Model != null && Model.Any())
+                    @if (ViewBag.FirstInLastOut != null)
                     {
-                        foreach (var item in Model)
+                        var filoDict = ViewBag.FirstInLastOut as Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>;
+                        var events = new List<(string Guid, string Name, DateTime? Time, string Type, string CameraName)>();
+
+                        foreach (var item in filoDict)
+                        {
+                            var staff = employees.FirstOrDefault(s => s.GuidStaff == item.Key);
+                            if (staff != null)
+                            {
+                                if (item.Value.FirstIn.HasValue)
+                                {
+                                    events.Add((item.Key, staff.Name, item.Value.FirstIn, "Check-In", item.Value.CameraName));
+                                }
+                                if (item.Value.LastOut.HasValue)
+                                {
+                                    events.Add((item.Key, staff.Name, item.Value.LastOut, "Check-Out", item.Value.CameraName));
+                                }
+                            }
+                        }
+
+                        foreach (var evt in events.OrderBy(e => e.Time))
                         {
                             <tr>
-                               <td></td>
+                                <td>@evt.Name</td>
+                                <td>@(evt.Time?.ToString("dd-MM-yyyy HH:mm") ?? "N/A")</td>
+                                <td>@evt.Type</td>
+                                <td>@evt.CameraName</td>
                             </tr>
                         }
                     }
@@ -33,3 +60,89 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        async function loadDepartments() {
+            const orgId = document.querySelector('input[name="orgId"]:checked')?.value || '';
+            const deptList = document.getElementById("departmentList");
+            deptList.innerHTML = `
+                        <li>
+                            <div class="form-check dropdown-item">
+                                <input class="form-check-input" type="radio" name="deptId" id="dept_null" value="" onchange="loadEmployees()">
+                                <label class="form-check-label" for="dept_null">Không chọn</label>
+                            </div>
+                        </li>`;
+
+            if (orgId) {
+                try {
+                    const response = await fetch(`/FirstInLastOut/GetDepartments?orgId=${orgId}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const departments = await response.json();
+                    departments.forEach(dept => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+                                    <div class="form-check dropdown-item">
+                                        <input class="form-check-input" type="radio" name="deptId" id="dept_${dept.IdDept}" value="${dept.IdDept}" onchange="loadEmployees()">
+                                        <label class="form-check-label" for="dept_${dept.IdDept}">${dept.Name}</label>
+                                    </div>`;
+                        deptList.appendChild(li);
+                    });
+                    // Cập nhật text của nút dropdown
+                    const selectedOrg = document.querySelector('input[name="orgId"]:checked')?.nextElementSibling.textContent;
+                    document.getElementById('orgDropdown').textContent = selectedOrg || 'Chọn Tổ chức';
+                } catch (error) {
+                    console.error('Error loading departments:', error);
+                }
+            } else {
+                document.getElementById('orgDropdown').textContent = 'Chọn Tổ chức';
+            }
+            loadEmployees();
+        }
+
+        async function loadEmployees() {
+            const orgId = document.querySelector('input[name="orgId"]:checked')?.value || '';
+            const deptId = document.querySelector('input[name="deptId"]:checked')?.value || '';
+            const empList = document.getElementById("employeeList");
+            empList.innerHTML = '';
+
+            try {
+                const response = await fetch(`/FirstInLastOut/GetEmployees?orgId=${orgId}&deptId=${deptId}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const employees = await response.json();
+                employees.forEach(emp => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                                <div class="form-check dropdown-item">
+                                    <input class="form-check-input" type="checkbox" name="employeeGuids" id="emp_${emp.id}" value="${emp.guidStaff}">
+                                    <label class="form-check-label" for="emp_${emp.id}">${emp.name}</label>
+                                </div>`;
+                    empList.appendChild(li);
+                });
+                // Cập nhật text của nút dropdown
+                const selectedDept = document.querySelector('input[name="deptId"]:checked')?.nextElementSibling.textContent;
+                document.getElementById('deptDropdown').textContent = selectedDept || 'Chọn Phòng ban';
+            } catch (error) {
+                console.error('Error loading employees:', error);
+            }
+        }
+
+        // Xử lý thay đổi radio button
+        document.addEventListener('change', function (e) {
+            if (e.target.name === 'orgId') {
+                loadDepartments();
+            } else if (e.target.name === 'deptId') {
+                loadEmployees();
+            }
+        });
+
+        // Khởi tạo khi trang load
+        document.addEventListener('DOMContentLoaded', function () {
+            const initialOrgId = document.querySelector('input[name="orgId"]:checked')?.value;
+            if (initialOrgId) {
+                loadDepartments();
+            }
+        });
+    </script>
+}

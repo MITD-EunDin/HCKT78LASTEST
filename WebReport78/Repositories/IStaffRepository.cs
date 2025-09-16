@@ -26,5 +26,11 @@ namespace WebReport78.Repositories
 
         //tổng số người có trong db cả loại 0 1 2 3 4
         //Task<List<Staff>> GetTotalEmployeeAsync();
+
+
+        // Thêm hai phương thức mới
+        Task<List<Organization>> GetOrganizationsAsync();
+        Task<List<Department>> GetDepartmentsByOrgIdAsync(int orgId);
+        Task<List<Staff>> GetStaffAsync(int IdOrg, int IdDept);
     }
 }

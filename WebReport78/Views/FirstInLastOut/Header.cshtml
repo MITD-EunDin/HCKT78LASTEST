@@ -1,35 +1,100 @@
-﻿@{
-    // Đảm bảo ViewBag.FromDate và ViewBag.ToDate là DateTime hoặc có giá trị mặc định
+﻿@model List<WebReport78.Models.eventLog>
+@using WebReport78.Models
+@{
+    ViewData["Title"] = "First In / Last Out";
     var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.Today;
     var toDate = ViewBag.ToDate as DateTime? ?? DateTime.Today.AddHours(23).AddMinutes(59);
-    // Định dạng cho datetime-local (yyyy-MM-ddTHH:mm)
-    var fromDateTime = fromDate.ToString("dd-MM-yyyy HH:mm");
-    var toDateTime = toDate.ToString("dd-MM-yyyy HH:mm");
-    // yyyy - MM - dd HH: mm
+    var fromDateTime = fromDate.ToString("yyyy-MM-ddTHH:mm");
+    var toDateTime = toDate.ToString("yyyy-MM-ddTHH:mm");
+
+    var organizations = ViewBag.Organizations as List<Organization> ?? new List<Organization>();
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+    var employees = ViewBag.Employees as List<Staff> ?? new List<Staff>();
 }
 
 <div class="mb-4">
     <form asp-action="Index" method="get">
         <div class="row align-items-end">
-                <div class="col-md-2">
-                    <label for="fromDate" class="form-label">Từ:</label>
-                    <input type="datetime" id="fromDate" name="fromDate" class="form-control" value="@fromDateTime" required />
-                </div>
-                <div class="col-md-2">
-                    <label for="toDate" class="form-label">Đến:</label>
-                    <input type="datetime" id="toDate" name="toDate" class="form-control" value="@toDateTime" required />
-                </div>
-        </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" id="searchFiLO" class="btn btn-primary w-100">
-                    Load dữ liệu
-                </button>
-                <button type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exportModal"
-                        class="btn btn-success w-100">
-                    Xuất Excel
-                </button>
+            <div class="col-md-2">
+                <label for="fromDate" class="form-label">Từ:</label>
+                <input type="datetime-local" id="fromDate" name="fromDate" class="form-control" value="@fromDateTime" required />
             </div>
+            <div class="col-md-2">
+                <label for="toDate" class="form-label">Đến:</label>
+                <input type="datetime-local" id="toDate" name="toDate" class="form-control" value="@toDateTime" required />
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" id="searchFiLO" class="btn btn-primary w-100">Load dữ liệu</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#exportModal" class="btn btn-success w-100">Xuất Excel</button>
+            </div>
+        </div>
+
+        <div class="d-flex mt-3">
+            <!-- Dropdown Organization -->
+            <div class="me-lg-3">
+                <label class="form-label">Chọn Tổ chức:</label>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="orgDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Chọn Tổ chức
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="orgDropdown" style="max-height: 200px; overflow-y: auto; z-index: 10000">
+                        <li>
+                            <div class="form-check dropdown-item">
+                                <input class="form-check-input" type="radio" name="orgId" id="org_null" value="" onchange="loadDepartments()">
+                                <label class="form-check-label" for="org_null">Không chọn</label>
+                            </div>
+                        </li>
+                        @foreach (var org in organizations)
+                        {
+                            <li>
+                                <div class="form-check dropdown-item">
+                                    <input class="form-check-input" type="radio" name="orgId" id="org_@org.IdOrg" value="@org.IdOrg" onchange="loadDepartments()">
+                                    <label class="form-check-label" for="org_@org.IdOrg">@org.Name</label>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Dropdown Department -->
+            <div class="me-lg-3">
+                <label class="form-label">Chọn Phòng ban:</label>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="deptDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Chọn Phòng ban
+                    </button>
+                    <ul class="dropdown-menu" id="departmentList" aria-labelledby="deptDropdown" style="max-height: 200px; overflow-y: auto;z-index: 10000">
+                        <li>
+                            <div class="form-check dropdown-item">
+                                <input class="form-check-input" type="radio" name="deptId" id="dept_null" value="" onchange="loadEmployees()">
+                                <label class="form-check-label" for="dept_null">Không chọn</label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Dropdown Employee -->
+            <div class="me-lg-3">
+                <label class="form-label">Chọn Nhân viên:</label>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="empDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Chọn Nhân viên
+                    </button>
+                    <ul class="dropdown-menu" id="employeeList" aria-labelledby="empDropdown" style="max-height: 200px; overflow-y: auto;z-index: 10000">
+                        @foreach (var emp in employees)
+                        {
+                            <li>
+                                <div class="form-check dropdown-item">
+                                    <input class="form-check-input" type="checkbox" name="employeeGuids" id="emp_@emp.GuidStaff" value="@emp.GuidStaff">
+                                    <label class="form-check-label" for="emp_@emp.GuidStaff">@emp.Name</label>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
     </form>
 </div>

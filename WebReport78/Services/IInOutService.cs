@@ -16,9 +16,9 @@ namespace WebReport78.Services
         Task UpdateCurrentSoldiersFromEventsAsync(long fromTs, long toTs, string locationId);
         // Lấy danh sách quân nhân hiện tại
         Task<List<CurrentSoldier>> GetCurrentSoldiersAsync(long fromTs, long toTs, string locationId);
-        // Lấy danh sách khách hiện tại
+        // Lấy danh sách khách hiện tạihttps://grok.com/?voice=true
         Task<List<Staff>> GetCurrentGuestsAsync(DateTime fromDate, DateTime toDate);
-        // Tìm nhân viên theo userGuid hoặc biển số
+        // Tìm nhân viên theo userGuid hoặc biển số (tức sự kiên 1 và 25 để xem lấy gì để so sánh)
         Task<Staff> GetStaffFromUserGuidAsync(string key);
         // Xử lý dữ liệu sự kiện cho InOut
         Task ProcessEventLogAsync(List<eventLog> data, DateTime fromDate, DateTime toDate);
@@ -36,5 +36,8 @@ namespace WebReport78.Services
         Task<Staff> CheckIdCardAsync(string idCard);
         // Lấy dữ liệu đã lọc theo type
         Task<List<eventLog>> GetFilteredDataAsync(string filterType, long fromTs, long toTs, string locationId, DateTime fromDate, DateTime toDate, List<string> validSources);
+
+        // Lấy cặp check-in đầu tiên và check-out cuối cùng theo GuidStaff
+        Task<Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>> DoubleInOutAsync(long fromTs, long toTs, string locationId, string employeeGuid);
     }
 }

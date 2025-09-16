@@ -95,5 +95,83 @@ namespace WebReport78.Repositories
             return await context.Staff
                 .FirstOrDefaultAsync(s => s.DocumentNumber == idCard && s.IdTypePerson.HasValue && (s.IdTypePerson.Value == 0 || s.IdTypePerson.Value == 2));
         }
+
+        //public async Task<List<Organization>> GetOrganizationsAsync()
+        //{
+        //    const string cacheKey = "Organizations";
+        //    if (!_cache.TryGetValue(cacheKey, out List<Organization> organizations))
+        //    {
+        //        using var context = _contextFactory.CreateDbContext();
+        //        organizations = await context.Organizations
+        //            .AsNoTracking()
+        //            .ToListAsync();
+        //        _cache.Set(cacheKey, organizations, TimeSpan.FromHours(1));
+        //    }
+        //    return organizations;
+        //}
+
+        //public async Task<List<Department>> GetDepartmentsByOrgIdAsync(int orgId)
+        //{
+        //    string cacheKey = $"Departments_{orgId}";
+        //    if (!_cache.TryGetValue(cacheKey, out List<Department> departments))
+        //    {
+        //        using var context = _contextFactory.CreateDbContext();
+        //        departments = await context.Departments
+        //            .AsNoTracking()
+        //            .Where(d => d.IdOrg == orgId)
+        //            .ToListAsync();
+        //        _cache.Set(cacheKey, departments, TimeSpan.FromHours(1));
+        //    }
+        //    return departments;
+        //}
+
+        public async Task<List<Organization>> GetOrganizationsAsync()
+        {
+            const string cacheKey = "orgs";
+            if(!_cache.TryGetValue(cacheKey, out List<Organization> orgs))
+            {
+            using var context = _contextFactory.CreateDbContext();
+            orgs = await context.Organizations .ToListAsync();
+                _cache.Set(cacheKey, orgs, TimeSpan.FromHours(1));
+            }
+            return orgs;
+        }
+
+        public async Task<List<Department>> GetDepartmentsByOrgIdAsync(int orgId)
+        {
+            string cacheKey = $"Departments_{orgId}";
+            if (!_cache.TryGetValue(cacheKey, out List<Department> departments))
+            {
+                using var context = _contextFactory.CreateDbContext();
+                departments = await context.Departments
+                    .AsNoTracking()
+                    .Where(d => d.IdOrg == orgId)
+                    .ToListAsync();
+                _cache.Set(cacheKey, departments, TimeSpan.FromHours(1));
+            }
+            return departments;
+        }
+
+        public async Task<List<Staff>> GetStaffAsync(int IdOrg, int IdDept)
+        {
+            string cacheKey = $"Staff_{IdOrg}_{IdDept}";
+            if (!_cache.TryGetValue(cacheKey, out List<Staff> staffList))
+            {
+                using var context = _contextFactory.CreateDbContext();
+                var query = context.Staff.AsQueryable();
+
+                if (IdOrg > 0)
+                    query = query.Where(s => s.IdOrg == IdOrg);
+
+                if (IdDept > 0)
+                    query = query.Where(s => s.IdDept == IdDept);
+
+                staffList = await query.AsNoTracking().ToListAsync();
+                _cache.Set(cacheKey, staffList, TimeSpan.FromMinutes(30));
+            }
+            return staffList;
+        }
+
+
     }
 }

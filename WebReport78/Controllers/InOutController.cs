@@ -26,6 +26,7 @@ namespace WebReport78.Controllers
             _staffRepo = staffRepo;
         }
 
+
         // Hiển thị trang báo cáo vào/ra
         public async Task<IActionResult> Index(string fromDate, string toDate, string filterType = "All", int page = 1, int pageSize = 100)
         {

@@ -51,6 +51,8 @@ builder.Services.AddSingleton<IJsonFileService, JsonFileService>();
 //login
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+//builder.Services.AddScoped<IFirstInCheckoutService, FirstInCheckoutService>();
+
 // Session để lưu vai trò sau khi đăng nhập
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSession(options =>

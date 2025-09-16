@@ -510,5 +510,62 @@ namespace WebReport78.Services
             //}
             return data;
         }
+
+        // first check in và last check out
+        public async Task<Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>> DoubleInOutAsync(long fromTs, long toTs, string locationId, string employeeGuid)
+        {
+            var result = new Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>();
+            var records = await _eventLogRepo.GetEventLogsAsync(fromTs, toTs, locationId, 1, int.MaxValue);
+            var sources = await _staffRepo.GetSourcesAsync();
+            var staffList = await _staffRepo.GetStaffListAsync();
+            var vehicles = await _staffRepo.GetVehiclesAsync();
+
+            var filteredRecords = string.IsNullOrEmpty(employeeGuid)
+                ? records
+                : records.Where(r => r.userGuid == employeeGuid || (r.typeEvent == 25 && vehicles.FirstOrDefault(v => v.Lpn == r.Name)?.IdStaff == employeeGuid)).ToList();
+
+            var groupedRecords = filteredRecords
+                .GroupBy(r =>
+                {
+                    if (r.typeEvent == 1)
+                        return r.userGuid;
+                    var vehicle = vehicles.FirstOrDefault(v => v.Lpn == r.Name);
+                    return vehicle?.IdStaff ?? r.userGuid;
+                })
+                .Where(g => !string.IsNullOrEmpty(g.Key));
+
+            foreach (var group in groupedRecords)
+            {
+                var guid = group.Key;
+                var staff = staffList.FirstOrDefault(s => s.GuidStaff == guid);
+                if (staff == null) continue;
+
+                var checkInRecords = group
+                    .Where(r => sources.FirstOrDefault(s => s.Guid == r.sourceID)?.AcCheckType == 2)
+                    .OrderBy(r => r.time_stamp)
+                    .ToList();
+                var checkOutRecords = group
+                    .Where(r => sources.FirstOrDefault(s => s.Guid == r.sourceID)?.AcCheckType == 1)
+                    .OrderByDescending(r => r.time_stamp)
+                    .ToList();
+
+                var firstCheckIn = checkInRecords.FirstOrDefault();
+                var lastCheckOut = checkOutRecords.FirstOrDefault();
+
+                var firstInTime = firstCheckIn != null
+                    ? DateTimeOffset.FromUnixTimeSeconds(firstCheckIn.time_stamp).ToLocalTime().DateTime
+                    : (DateTime?)null;
+                var lastOutTime = lastCheckOut != null
+                    ? DateTimeOffset.FromUnixTimeSeconds(lastCheckOut.time_stamp).ToLocalTime().DateTime
+                    : (DateTime?)null;
+                var cameraName = firstCheckIn != null
+                    ? (sources.FirstOrDefault(s => s.Guid == firstCheckIn.sourceID)?.Name ?? firstCheckIn.sourceID)
+                    : (lastCheckOut != null ? (sources.FirstOrDefault(s => s.Guid == lastCheckOut.sourceID)?.Name ?? lastCheckOut.sourceID) : "N/A");
+
+                result[guid] = (firstInTime, lastOutTime, cameraName);
+            }
+
+            return result;
+        }
     }
 }
