@@ -14,25 +14,10 @@
 
 <div class="mb-4">
     <form asp-action="Index" method="get">
-        <div class="row align-items-end">
-            <div class="col-md-2">
-                <label for="fromDate" class="form-label">Từ:</label>
-                <input type="datetime-local" id="fromDate" name="fromDate" class="form-control" value="@fromDateTime" required />
-            </div>
-            <div class="col-md-2">
-                <label for="toDate" class="form-label">Đến:</label>
-                <input type="datetime-local" id="toDate" name="toDate" class="form-control" value="@toDateTime" required />
-            </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" id="searchFiLO" class="btn btn-primary w-100">Load dữ liệu</button>
-                <button type="button" data-bs-toggle="modal" data-bs-target="#exportModal" class="btn btn-success w-100">Xuất Excel</button>
-            </div>
-        </div>
-
         <div class="d-flex mt-3">
             <!-- Dropdown Organization -->
             <div class="me-lg-3">
-                <label class="form-label">Chọn Tổ chức:</label>
+                // <label class="form-label">Chọn Tổ chức:</label>
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="orgDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         Chọn Tổ chức
@@ -59,7 +44,7 @@
 
             <!-- Dropdown Department -->
             <div class="me-lg-3">
-                <label class="form-label">Chọn Phòng ban:</label>
+                // <label class="form-label">Chọn Phòng ban:</label>
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="deptDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         Chọn Phòng ban
@@ -77,7 +62,7 @@
 
             <!-- Dropdown Employee -->
             <div class="me-lg-3">
-                <label class="form-label">Chọn Nhân viên:</label>
+                // <label class="form-label">Chọn Nhân viên:</label>
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="empDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         Chọn Nhân viên

@@ -1,0 +1,181 @@
+﻿@model List<WebReport78.Models.eventLog>
+@using WebReport78.Models
+@using WebReport78.Repositories
+@using System.Text.Json
+@{
+    ViewData["Title"] = "First In / Last Out";
+    var fromDate = ViewBag.FromDate as DateTime? ?? DateTime.Today;
+    var toDate = ViewBag.ToDate as DateTime? ?? DateTime.Today.AddHours(23).AddMinutes(59);
+    var fromDateTime = fromDate.ToString("dd-MM-yyyy HH:mm");
+    var toDateTime = toDate.ToString("dd-MM-yyyy HH:mm");
+
+    var organizations = ViewBag.Organizations as List<Organization> ?? new List<Organization>();
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+    var employees = ViewBag.Employees as List<Staff> ?? new List<Staff>();
+    int selectedOrg = ViewBag.SelectedOrgId ?? 0;
+    int selectedDept = ViewBag.SelectedDeptId ?? 0;
+    var selectedEmployeeGuids = ViewBag.SelectedEmployeeGuids as List<string> ?? new List<string>();
+}
+
+<div class="">
+    <form asp-action="Index" method="get" class="d-flex">
+        <input type="hidden" name="orgId" id="hiddenOrg" value="@selectedOrg" />
+        <input type="hidden" name="deptId" id="hiddenDept" value="@selectedDept" />
+        <input type="hidden" name="employeeGuids" id="hiddenEmployees" value="@string.Join(",", selectedEmployeeGuids)" />
+
+        <div class="me-lg-3">
+            <div class="dropdown">
+                <button id="orgDropdown" class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    @(selectedOrg > 0 ? organizations.FirstOrDefault(o => o.IdOrg == selectedOrg)?.Name ?? "Chọn tổ chức" : "Chọn tổ chức")
+                </button>
+                <ul class="dropdown-menu" id="orgList">
+                    <li>
+                        <a class="dropdown-item org-option" data-id="0">Không chọn</a>
+                    </li>
+                    @foreach (var org in organizations)
+                    {
+                        <li>
+                            <a class="dropdown-item org-option" data-id="@org.IdOrg">@org.Name</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="me-lg-3">
+            <div class="dropdown">
+                <button id="deptDropdown" class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    @(selectedDept > 0 ? departments.FirstOrDefault(d => d.IdDept == selectedDept)?.Name ?? "Chọn phòng ban" : "Chọn phòng ban")
+                </button>
+                <ul class="dropdown-menu" id="deptList">
+                    <li><a class="dropdown-item dept-option" data-id="0">Không chọn</a></li>
+                    @foreach (var dept in departments)
+                    {
+                        <li>
+                            <a class="dropdown-item dept-option" data-id="@dept.IdDept">@dept.Name</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="me-lg-3">
+            <div class="dropdown">
+                <button id="empDropdown" class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    @(selectedEmployeeGuids.Any() ? (selectedEmployeeGuids.Count == 1 ? employees.FirstOrDefault(e => e.GuidStaff == selectedEmployeeGuids.First())?.Name ?? "Chọn nhân viên" : $"{selectedEmployeeGuids.Count} nhân viên đã chọn") : "Chọn nhân viên")
+                </button>
+                <ul class="dropdown-menu" id="empList" style="max-height:250px; overflow-y:auto;"></ul>
+            </div>
+        </div>
+    </form>
+</div>  
+
+@section Scripts {
+    <script>
+        let selectedOrg = @selectedOrg;
+        let selectedDept = @selectedDept;
+
+        // Khởi tạo selectedEmployees từ server (nếu có)
+        let selectedEmployees = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        (ViewBag.SelectedEmployees as List<Staff> ?? new List<Staff>())
+        .Select(e => new { id = e.GuidStaff, name = e.Name })
+        ));
+
+        // --- Load Departments khi chọn Org ---
+        $(document).on("click", ".org-option", function (e) {
+            e.preventDefault();
+            selectedOrg = $(this).data("id");
+            $("#hiddenOrg").val(selectedOrg);
+            $("#orgDropdown").html($(this).text() + ' <span class="dropdown-toggle"></span>');
+            $("#deptDropdown").html('Chọn phòng ban <span class="dropdown-toggle"></span>');
+            $("#empDropdown").html('Chọn nhân viên <span class="dropdown-toggle"></span>');
+            $("#hiddenDept").val(0);
+            $("#hiddenEmployees").val('');
+            selectedDept = 0;
+            selectedEmployees = [];
+            loadDepartments();
+            loadEmployees();
+        });
+
+        // --- Load Employees khi chọn Dept ---
+        $(document).on("click", ".dept-option", function (e) {
+            e.preventDefault();
+            selectedDept = $(this).data("id");
+            $("#hiddenDept").val(selectedDept);
+            $("#deptDropdown").html($(this).text() + ' <span class="dropdown-toggle"></span>');
+            $("#empDropdown").html('Chọn nhân viên <span class="dropdown-toggle"></span>');
+            $("#hiddenEmployees").val('');
+            selectedEmployees = [];
+            loadEmployees();
+        });
+
+        // --- Chọn nhân viên ---
+        $(document).on("change", ".emp-checkbox", function () {
+            let empId = $(this).val();
+            let empName = $(this).data("name");
+            if (this.checked) {
+                selectedEmployees.push({ id: empId, name: empName });
+            } else {
+                selectedEmployees = selectedEmployees.filter(e => e.id !== empId);
+            }
+            $("#hiddenEmployees").val(selectedEmployees.map(e => e.id).join(','));
+            updateEmpDropdownText();
+        });
+
+        function updateEmpDropdownText() {
+            let newText;
+            if (!selectedEmployees || selectedEmployees.length === 0) {
+                newText = "Chọn nhân viên";
+            } else if (selectedEmployees.length === 1) {
+                newText = selectedEmployees[0].name;
+            } else {
+                newText = selectedEmployees.length + " nhân viên đã chọn";
+            }
+            $("#empDropdown").html(newText + ' <span class="dropdown-toggle"></span>');
+        }
+
+        function loadDepartments() {
+            if (selectedOrg <= 0) {
+                $("#deptList").html(`<li><a class="dropdown-item dept-option" data-id="0">Không chọn</a></li>`);
+                $("#deptDropdown").html('Chọn phòng ban <span class="dropdown-toggle"></span>');
+                return;
+            }
+            $.get("/InOut/GetDepartments", { orgId: selectedOrg }, function (data) {
+                let html = `<li><a class="dropdown-item dept-option" data-id="0">Không chọn</a></li>`;
+                data.forEach(d => {
+                    let id = d.idDept ?? d.id;
+                    html += `<li><a class="dropdown-item dept-option" data-id="${id}">${d.name}</a></li>`;
+                });
+                $("#deptList").html(html);
+                if (selectedDept > 0) {
+                    let selectedDeptName = data.find(d => (d.idDept ?? d.id) === selectedDept)?.name || "Chọn phòng ban";
+                    $("#deptDropdown").html(selectedDeptName + ' <span class="dropdown-toggle"></span>');
+                }
+            }).fail(() => console.error("Lỗi khi load departments"));
+        }
+
+        function loadEmployees() {
+            $.get("/InOut/GetEmployees", { orgId: selectedOrg, deptId: selectedDept }, function (data) {
+                let html = "";
+                data.forEach(e => {
+                    let isChecked = selectedEmployees.some(se => se.id === e.guidStaff) ? "checked" : "";
+                    html += `
+                                <li>
+                                    <div class="form-check dropdown-item">
+                                        <input class="form-check-input emp-checkbox" type="checkbox" value="${e.guidStaff}" data-name="${e.name}" ${isChecked}>
+                                        <label class="form-check-label">${e.name}</label>
+                                    </div>
+                                </li>`;
+                });
+                $("#empList").html(html);
+                updateEmpDropdownText();
+            }).fail(() => console.error("Lỗi khi load employees"));
+        }
+
+        // --- Load initial ---
+        loadEmployees();
+        if (selectedOrg > 0) {
+            loadDepartments();
+        }
+
+        console.log("Initial selectedOrg:", selectedOrg, "selectedDept:", selectedDept, "selectedEmployees:", selectedEmployees);
+    </script>
+}

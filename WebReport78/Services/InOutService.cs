@@ -520,32 +520,35 @@ namespace WebReport78.Services
             var staffList = await _staffRepo.GetStaffListAsync();
             var vehicles = await _staffRepo.GetVehiclesAsync();
 
+            // Tạo dictionary để tra cứu nhanh
+            var sourceDict = sources.ToDictionary(s => s.Guid, s => s);
+            var vehicleDict = vehicles.ToDictionary(v => v.Lpn, v => v, StringComparer.OrdinalIgnoreCase);
+            var staffDict = staffList.ToDictionary(s => s.GuidStaff, s => s);
+
             var filteredRecords = string.IsNullOrEmpty(employeeGuid)
                 ? records
-                : records.Where(r => r.userGuid == employeeGuid || (r.typeEvent == 25 && vehicles.FirstOrDefault(v => v.Lpn == r.Name)?.IdStaff == employeeGuid)).ToList();
+                : records.Where(r => r.userGuid == employeeGuid || (r.typeEvent == 25 && vehicleDict.TryGetValue(r.Name, out var v) && v.IdStaff == employeeGuid)).ToList();
 
             var groupedRecords = filteredRecords
                 .GroupBy(r =>
                 {
                     if (r.typeEvent == 1)
                         return r.userGuid;
-                    var vehicle = vehicles.FirstOrDefault(v => v.Lpn == r.Name);
-                    return vehicle?.IdStaff ?? r.userGuid;
+                    return vehicleDict.TryGetValue(r.Name, out var vehicle) ? vehicle.IdStaff : r.userGuid;
                 })
                 .Where(g => !string.IsNullOrEmpty(g.Key));
 
             foreach (var group in groupedRecords)
             {
                 var guid = group.Key;
-                var staff = staffList.FirstOrDefault(s => s.GuidStaff == guid);
-                if (staff == null) continue;
+                if (!staffDict.TryGetValue(guid, out var staff)) continue;
 
                 var checkInRecords = group
-                    .Where(r => sources.FirstOrDefault(s => s.Guid == r.sourceID)?.AcCheckType == 2)
+                    .Where(r => sourceDict.TryGetValue(r.sourceID, out var source) && source.AcCheckType == 2)
                     .OrderBy(r => r.time_stamp)
                     .ToList();
                 var checkOutRecords = group
-                    .Where(r => sources.FirstOrDefault(s => s.Guid == r.sourceID)?.AcCheckType == 1)
+                    .Where(r => sourceDict.TryGetValue(r.sourceID, out var source) && source.AcCheckType == 1)
                     .OrderByDescending(r => r.time_stamp)
                     .ToList();
 
@@ -559,8 +562,8 @@ namespace WebReport78.Services
                     ? DateTimeOffset.FromUnixTimeSeconds(lastCheckOut.time_stamp).ToLocalTime().DateTime
                     : (DateTime?)null;
                 var cameraName = firstCheckIn != null
-                    ? (sources.FirstOrDefault(s => s.Guid == firstCheckIn.sourceID)?.Name ?? firstCheckIn.sourceID)
-                    : (lastCheckOut != null ? (sources.FirstOrDefault(s => s.Guid == lastCheckOut.sourceID)?.Name ?? lastCheckOut.sourceID) : "N/A");
+                    ? (sourceDict.TryGetValue(firstCheckIn.sourceID, out var src) ? src.Name : firstCheckIn.sourceID)
+                    : (lastCheckOut != null && sourceDict.TryGetValue(lastCheckOut.sourceID, out var src2) ? src2.Name : "N/A");
 
                 result[guid] = (firstInTime, lastOutTime, cameraName);
             }

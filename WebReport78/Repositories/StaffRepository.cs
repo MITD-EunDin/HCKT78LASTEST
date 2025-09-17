@@ -152,25 +152,26 @@ namespace WebReport78.Repositories
             return departments;
         }
 
-        public async Task<List<Staff>> GetStaffAsync(int IdOrg, int IdDept)
+        public async Task<List<Staff>> GetStaffAsync(int? IdOrg, int? IdDept)
         {
-            string cacheKey = $"Staff_{IdOrg}_{IdDept}";
+            string cacheKey = $"Staff_{IdOrg?.ToString() ?? "all"}_{IdDept?.ToString() ?? "all"}";
             if (!_cache.TryGetValue(cacheKey, out List<Staff> staffList))
             {
                 using var context = _contextFactory.CreateDbContext();
                 var query = context.Staff.AsQueryable();
 
-                if (IdOrg > 0)
-                    query = query.Where(s => s.IdOrg == IdOrg);
+                if (IdOrg.HasValue && IdOrg.Value > 0)
+                    query = query.Where(s => s.IdOrg == IdOrg.Value);
 
-                if (IdDept > 0)
-                    query = query.Where(s => s.IdDept == IdDept);
+                if (IdDept.HasValue && IdDept.Value > 0)
+                    query = query.Where(s => s.IdDept == IdDept.Value);
 
                 staffList = await query.AsNoTracking().ToListAsync();
                 _cache.Set(cacheKey, staffList, TimeSpan.FromMinutes(30));
             }
             return staffList;
         }
+
 
 
     }

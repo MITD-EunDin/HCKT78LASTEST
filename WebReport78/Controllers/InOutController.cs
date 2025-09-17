@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -28,7 +29,7 @@ namespace WebReport78.Controllers
 
 
         // Hiển thị trang báo cáo vào/ra
-        public async Task<IActionResult> Index(string fromDate, string toDate, string filterType = "All", int page = 1, int pageSize = 100)
+        public async Task<IActionResult> Index(string fromDate, string toDate, string filterType = "All", int page = 1, int pageSize = 100, int orgId = 0, int deptId = 0, string employeeGuids = "")
         {
             try
             {
@@ -36,6 +37,24 @@ namespace WebReport78.Controllers
                 var locationId = _jsonService.GetLocationId();
 
                 var (soldierTotal, soldierCurrent, guestCount, guestCurrent) = await _inOutService.GetSummaryAsync(fromTs, toTs, locationId, parsedFromDate);
+
+                // Dropdown dữ liệu
+                var orgs = await _staffRepo.GetOrganizationsAsync();
+                var depts = orgId > 0 ? await _staffRepo.GetDepartmentsByOrgIdAsync(orgId) : new List<Department>();
+                var employees = await _staffRepo.GetStaffAsync(orgId, deptId);
+
+                // Xử lý employeeGuids
+                var selectedEmployeeGuids = string.IsNullOrEmpty(employeeGuids) ? new List<string>() : employeeGuids.Split(',').ToList();
+                var selectedEmployees = employees.Where(e => selectedEmployeeGuids.Contains(e.GuidStaff)).Select(e => new Staff { GuidStaff = e.GuidStaff, Name = e.Name }).ToList();
+
+                // ViewBag cho dropdown và các thông tin khác
+                ViewBag.Organizations = orgs;
+                ViewBag.Departments = depts;
+                ViewBag.Employees = employees;
+                ViewBag.SelectedOrgId = orgId;
+                ViewBag.SelectedDeptId = deptId;
+                ViewBag.SelectedEmployeeGuids = selectedEmployeeGuids;
+                ViewBag.SelectedEmployees = selectedEmployees;
 
                 ViewData["SoldierTotal"] = soldierTotal;
                 ViewData["SoldierCurrent"] = soldierCurrent;
@@ -57,6 +76,18 @@ namespace WebReport78.Controllers
                         formatted_date = g.StartTime.HasValue ? TimeStampHelper.ConvertTimestamp(g.StartTime.Value) : "N/A",
                         idCard = g.DocumentNumber,
                         Gender = g.Gender == 1 ? "Nam" : "Nữ"
+                    }).ToList();
+                }
+                else if (filterType == "FILO")
+                {
+                    var filoData = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, selectedEmployeeGuids.Any() ? string.Join(",", selectedEmployeeGuids) : null);
+                    data = filoData.Select(kvp => new eventLog
+                    {
+                        userGuid = kvp.Key,
+                        Name = employees.FirstOrDefault(e => e.GuidStaff == kvp.Key)?.Name ?? "N/A",
+                        formatted_date = kvp.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
+                        type_eventIO = kvp.Value.LastOut?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
+                        cameraName = kvp.Value.CameraName
                     }).ToList();
                 }
                 else
@@ -159,6 +190,63 @@ namespace WebReport78.Controllers
             {
                 _logger.LogError(ex, "Lỗi khi khởi tạo danh sách quân số");
                 return StatusCode(500, "Có lỗi xảy ra khi khởi tạo danh sách quân số.");
+            }
+        }
+        // Lấy Employees theo Org + Dept
+        [HttpGet]
+        public async Task<IActionResult> GetEmployees(int? orgId, int? deptId)
+        {
+            var employees = await _staffRepo.GetStaffAsync(orgId, deptId);
+            return Json(employees.Select(e => new { guidStaff = e.GuidStaff, name = e.Name }));
+        }
+
+        // Lấy Departments theo Org
+        [HttpGet]
+        public async Task<IActionResult> GetDepartments(int orgId)
+        {
+            var depts = await _staffRepo.GetDepartmentsByOrgIdAsync(orgId);
+            return Json(depts.Select(d => new { idDept = d.IdDept, name = d.Name }));
+        }
+
+        // Gọi DoubleInOutAsync
+        [HttpGet]
+        public async Task<IActionResult> GetInOutTimes(string fromDate, string toDate, string employeeGuids)
+        {
+            try
+            {
+                var guids = string.IsNullOrEmpty(employeeGuids) ? new List<string>() : employeeGuids.Split(',').ToList();
+                var (parsedFromDate, parsedToDate, fromTs, toTs) = _inOutService.ParseDateRange(fromDate, toDate);
+                var locationId = _jsonService.GetLocationId();
+
+                var result = new Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>();
+                foreach (var guid in guids)
+                {
+                    var partialResult = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, guid);
+                    foreach (var kvp in partialResult)
+                    {
+                        result[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                if (!result.Any())
+                {
+                    return Json(new { success = false, message = "Không tìm thấy dữ liệu check-in/check-out." });
+                }
+
+                var response = result.Select(r => new
+                {
+                    UserGuid = r.Key,
+                    FirstIn = r.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm"),
+                    LastOut = r.Value.LastOut?.ToString("dd-MM-yyyy HH:mm"),
+                    CameraName = r.Value.CameraName
+                });
+
+                return Json(new { success = true, data = response });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy thời gian check-in/check-out");
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống nội bộ" });
             }
         }
 

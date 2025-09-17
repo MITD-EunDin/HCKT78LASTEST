@@ -31,6 +31,7 @@ namespace WebReport78.Repositories
         // Thêm hai phương thức mới
         Task<List<Organization>> GetOrganizationsAsync();
         Task<List<Department>> GetDepartmentsByOrgIdAsync(int orgId);
-        Task<List<Staff>> GetStaffAsync(int IdOrg, int IdDept);
+        Task<List<Staff>> GetStaffAsync(int? orgId, int? deptId);
+
     }
 }

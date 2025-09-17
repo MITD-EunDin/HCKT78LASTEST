@@ -11,37 +11,38 @@
 <div class="mb-4">
     <form asp-action="Index" method="get">
         <div class="row align-items-end">
-                <div class="col-md-1">
-                    <label class="form-label">Quân số:</label>
-                    <span class="form-control d-flex justify-content-between">
-                        <text id="SoldierCurrent">@ViewData["SoldierCurrent"]</text>
-                        <text>/</text>
-                        <text id="SoldierTotal">@ViewData["SoldierTotal"]</text>
-                    </span>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label">Số khách:</label>
-                    <span id="guestCount" class="form-control">@ViewData["GuestCount"]</span>
-                </div>
-                <div class="col-md-2">
-                    <label for="fromDate" class="form-label">Từ:</label>
-                    <input type="datetime" id="fromDate" name="fromDate" class="form-control" value="@fromDateTime" required />
-                </div>
-                <div class="col-md-2">
-                    <label for="toDate" class="form-label">Đến:</label>
-                    <input type="datetime" id="toDate" name="toDate" class="form-control" value="@toDateTime" required />
-                </div>
+            <div class="col-md-1">
+                <label class="form-label">Quân số:</label>
+                <span class="form-control d-flex justify-content-between">
+                    <text id="SoldierCurrent">@ViewData["SoldierCurrent"]</text>
+                    <text>/</text>
+                    <text id="SoldierTotal">@ViewData["SoldierTotal"]</text>
+                </span>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Số khách:</label>
+                <span id="guestCount" class="form-control">@ViewData["GuestCount"]</span>
+            </div>
+            <div class="col-md-2">
+                <label for="fromDate" class="form-label">Từ:</label>
+                <input type="datetime" id="fromDate" name="fromDate" class="form-control" value="@fromDateTime" required />
+            </div>
+            <div class="col-md-2">
+                <label for="toDate" class="form-label">Đến:</label>
+                <input type="datetime" id="toDate" name="toDate" class="form-control" value="@toDateTime" required />
+            </div>
 
-                <div class="col-md-2">
-                    <label for="filterType" class="form-label">Lọc Dữ liệu:</label>
-                    <select id="filterType" name="filterType" class="form-control">
-                        <option value="All" selected="@(ViewBag.Filter == "All" || ViewBag.Filter == null)">Tất Cả</option>
-                        <option value="Late" selected="@(ViewBag.Filter == "Late")">Đi Muộn</option>
-                        <option value="Early" selected="@(ViewBag.Filter == "Early")">Về Sớm</option>
-                        <option value="CurrentSoldiers" selected="@(ViewBag.Filter == "CurrentSoldiers")">Quân số hiện tại</option>
-                        <option value="CurrentGuests" selected="@(ViewBag.Filter == "CurrentGuests")">Số khách</option>
-                    </select>
-                </div>
+            <div class="col-md-2">
+                <label for="filterType" class="form-label">Lọc Dữ liệu:</label>
+                <select id="filterType" name="filterType" class="form-control">
+                    <option value="All" selected="@(ViewBag.Filter == "All" || ViewBag.Filter == null)">Tất Cả</option>
+                    <option value="Late" selected="@(ViewBag.Filter == "Late")">Đi Muộn</option>
+                    <option value="Early" selected="@(ViewBag.Filter == "Early")">Về Sớm</option>
+                    <option value="CurrentSoldiers" selected="@(ViewBag.Filter == "CurrentSoldiers")">Quân số hiện tại</option>
+                    <option value="CurrentGuests" selected="@(ViewBag.Filter == "CurrentGuests")">Số khách</option>
+                    <option value="FILO" selected="@(ViewBag.Filter == "FILO")">First In/Last Out</option>
+                </select>
+            </div>
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" id="searchBtn" class="btn btn-primary w-100">
                     Load dữ liệu
