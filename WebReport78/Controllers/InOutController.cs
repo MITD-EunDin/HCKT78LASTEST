@@ -80,15 +80,29 @@ namespace WebReport78.Controllers
                 }
                 else if (filterType == "FILO")
                 {
-                    var filoData = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, selectedEmployeeGuids.Any() ? string.Join(",", selectedEmployeeGuids) : null);
-                    data = filoData.Select(kvp => new eventLog
+                    //var filoData = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, selectedEmployeeGuids.Any() ? string.Join(",", selectedEmployeeGuids) : null);
+                    //data = filoData.Select(kvp => new eventLog
+                    //{
+                    //    userGuid = kvp.Key,
+                    //    Name = employees.FirstOrDefault(e => e.GuidStaff == kvp.Key)?.Name ?? "N/A",
+                    //    formatted_date = kvp.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
+                    //    type_eventIO = kvp.Value.LastOut?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
+                    //    cameraName = kvp.Value.CameraName
+                    //}).ToList();
+                    var validSources = (await _staffRepo.GetSourcesAsync()).Where(s => s.AcCheckType == 1 || s.AcCheckType == 2).Select(s => s.Guid).ToList();
+                    var vehicles = await _staffRepo.GetVehiclesAsync();
+                    var vehicleDict = vehicles.ToDictionary(v => v.Lpn, v => v.IdStaff, StringComparer.OrdinalIgnoreCase);
+
+                    data = await _inOutService.GetFilteredDataAsync("All", fromTs, toTs, locationId, parsedFromDate, parsedToDate, validSources);
+                    if (selectedEmployeeGuids.Any())    
                     {
-                        userGuid = kvp.Key,
-                        Name = employees.FirstOrDefault(e => e.GuidStaff == kvp.Key)?.Name ?? "N/A",
-                        formatted_date = kvp.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
-                        type_eventIO = kvp.Value.LastOut?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
-                        cameraName = kvp.Value.CameraName
-                    }).ToList();
+                        data = data.Where(x =>
+                            (x.typeEvent == 1 && selectedEmployeeGuids.Contains(x.userGuid)) ||
+                            (x.typeEvent == 25 && vehicleDict.TryGetValue(x.Name, out var idStaff) && selectedEmployeeGuids.Contains(idStaff))
+                        ).ToList();
+                    }
+                    await _inOutService.ProcessEventLogAsync(data, parsedFromDate, parsedToDate);
+                    data = data.Where(x => !string.IsNullOrEmpty(x.Name) && x.Name != "Unknown").ToList();
                 }
                 else
                 {

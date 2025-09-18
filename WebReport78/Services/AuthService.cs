@@ -36,26 +36,65 @@ namespace WebReport78.Services
                 return null;
             }
 
-            using (var sha256 = SHA256Managed.Create())
+            try
             {
-                string Password = password.Trim();
-                byte[] bytes = Encoding.UTF8.GetBytes(Password);
-                _logger.LogInformation("byte = {bytes}", bytes);
-                _logger.LogInformation("HashPassword: Salted password (before hash) = {Password}", Password);
+                _logger.LogInformation("HashPassword: Bắt đầu hash với Password = {Password}, Salt = {Salt}", password.Trim(), salt);
 
-                // hash lan 1
-                byte[] hash = sha256.ComputeHash(bytes);
-                string hashResult1 = BitConverter.ToString(hash).Replace("-", "").ToLower();
-                _logger.LogInformation("hash lan 1 = {hashResult1}", hashResult1);
-                //hash lan 2
-                string saltPassword = (salt + hashResult1).Trim();
-                byte[] byte2 = Encoding.UTF8.GetBytes(saltPassword);
-                _logger.LogInformation("truoc khi hash lan 2 = {saltPassword}", saltPassword);
-                byte[] hash2 = sha256.ComputeHash(byte2);
-                string hashResult2 = BitConverter.ToString(hash2).Replace("-", "").ToLower();
-                _logger.LogInformation("HashPassword: Hashed result = {HashResult2}", hashResult2);
+                //using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(salt)))
+                //{
+                //    byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
-                return hashResult2;
+                //    byte[] hash = hmac.ComputeHash(passwordBytes);
+                //    _logger.LogInformation("Byte ecnoding password: {passwordBytes}");
+                //    _logger.LogInformation("byte cái password ở trên sau khi hash là {hash}");
+
+                //    string hashResult = BitConverter.ToString(hash).Replace("-", "").ToLower();
+
+                //    _logger.LogInformation("HashPassword: Password = {Password}, Salt = {Salt}, Hashed result = {HashResult}",
+                //        password.Trim(), salt, hashResult);
+                //    return hashResult;
+                //}
+                // salt = key
+                //using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(salt)))
+                //{
+                //    // password = message
+                //    byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+                //    byte[] hash = hmac.ComputeHash(passwordBytes);
+                //    string rs = BitConverter.ToString(hash).Replace("-", "").ToLower();
+
+                //    _logger.LogInformation("HashPassword: Password = {Password}, Salt = {Salt}, Hashed result = {HashResult}", password.Trim(), salt, rs);
+                //    // Chuyển sang hex lowercase
+                //    //return BitConverter.ToString(hash).Replace("-", "").ToLower();
+                //    return rs;
+                //}
+                string trimmedPassword = password.Trim();
+                string trimSalt = salt.Trim();
+                byte[] keyBytes = Encoding.UTF8.GetBytes(trimSalt);     // Salt đóng vai trò như key
+                byte[] messageBytes = Encoding.UTF8.GetBytes(trimmedPassword); // Password là message
+
+                _logger.LogInformation("HashPassword: Chuỗi password sau khi trim = {TrimmedPassword}", trimmedPassword);
+                _logger.LogInformation("HashPassword: Salt (key) = {Salt}", trimSalt);
+                _logger.LogInformation("HashPassword: Byte[] của key = {KeyBytes}", BitConverter.ToString(keyBytes));
+                _logger.LogInformation("HashPassword: Byte[] của password = {MessageBytes}", BitConverter.ToString(messageBytes));
+
+
+                using (var hmac = new HMACSHA256(keyBytes))
+                {
+                    byte[] hashBytes = hmac.ComputeHash(messageBytes);
+                    string hashHex = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+
+                    _logger.LogInformation("HashPassword: Đã hash xong. Password = {Password}, Salt = {Salt}, Hash = {HashResult}",
+                        trimmedPassword, salt, hashHex);
+                    _logger.LogInformation("HashPassword: Byte[] sau khi hash = {HashBytes}", BitConverter.ToString(hashBytes));
+                    _logger.LogInformation("HashPassword: Chuỗi hex sau khi hash = {HashHex}", hashHex);
+
+                    return hashHex;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("HasPassWord: Error while hasing password");
+                return null;
             }
         }
 

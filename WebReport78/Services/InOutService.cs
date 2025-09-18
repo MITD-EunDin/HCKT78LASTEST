@@ -455,38 +455,75 @@ namespace WebReport78.Services
             return await _staffRepo.GetStaffByDocumentNumberAsync(idCard);
         }
 
+        //public async Task<List<eventLog>> GetFilteredDataAsync(string filterType, long fromTs, long toTs, string locationId, DateTime fromDate, DateTime toDate, List<string> validSources)
+        //{
+        //    if (filterType == "CurrentSoldiers")
+        //    {
+        //        if (fromDate.Date != DateTime.Today)
+        //        {
+        //            // Nếu fromDate không phải hôm nay, trả về currentSoldiers từ JSON mà không tính toán lại
+        //            var currentSoldiers = _jsonService.LoadCurrentSoldiers();
+        //            return currentSoldiers.Select(s => new eventLog
+        //            {
+        //                userGuid = s.UserGuid_cur,
+        //                Name = s.Name_cur,
+        //                idCard = s.IdCard_cur,
+        //                Gender = s.Gender_cur,
+        //                phone = s.PhoneNumber_cur
+        //            }).ToList();
+        //        }
+        //        else
+        //        {
+        //            // Nếu fromDate là hôm nay, tính toán CurrentSoldiers như bình thường
+        //            var (fromTsToday, toTsToday) = GetTodayTimestampRange();
+        //            await UpdateCurrentSoldiersFromEventsAsync(fromTsToday, toTsToday, locationId);
+        //            var currentSoldiers = _jsonService.LoadCurrentSoldiers();
+        //            return currentSoldiers.Select(s => new eventLog
+        //            {
+        //                userGuid = s.UserGuid_cur,
+        //                Name = s.Name_cur,
+        //                idCard = s.IdCard_cur,
+        //                Gender = s.Gender_cur,
+        //                phone = s.PhoneNumber_cur
+        //            }).ToList();
+        //        }
+        //    }
+
+        //    var data = await _eventLogRepo.GetEventLogsAsync(fromTs, toTs, locationId, 1, int.MaxValue);
+        //    data = data.Where(x => x.typeEvent == 1 || (x.typeEvent == 25 && validSources.Contains(x.sourceID))).ToList();
+
+        //    if (filterType != "CurrentSoldiers") await ProcessEventLogAsync(data, fromDate, toDate);
+
+        //    if (filterType == "Late") return data.Where(x => x.type_eventLE == "L").ToList();
+        //    if (filterType == "Early") return data.Where(x => x.type_eventLE == "E").ToList();
+        //    //if (filterType == "CurrentSoldiers")
+        //    //{
+        //    //    var currentSoldiers = await GetCurrentSoldiersAsync(fromTs, toTs, locationId);
+        //    //    return currentSoldiers.Select(s => new eventLog
+        //    //    {
+        //    //        userGuid = s.UserGuid_cur,
+        //    //        Name = s.Name_cur,
+        //    //        idCard = s.IdCard_cur,
+        //    //        Gender = s.Gender_cur,
+        //    //        phone = s.PhoneNumber_cur
+        //    //    }).ToList();
+        //    //}
+        //    return data;
+        //}
         public async Task<List<eventLog>> GetFilteredDataAsync(string filterType, long fromTs, long toTs, string locationId, DateTime fromDate, DateTime toDate, List<string> validSources)
         {
             if (filterType == "CurrentSoldiers")
             {
-                if (fromDate.Date != DateTime.Today)
+                await UpdateCurrentSoldiersFromEventsAsync(fromTs, toTs, locationId);
+                var currentSoldiers = _jsonService.LoadCurrentSoldiers();
+                return currentSoldiers.Select(s => new eventLog
                 {
-                    // Nếu fromDate không phải hôm nay, trả về currentSoldiers từ JSON mà không tính toán lại
-                    var currentSoldiers = _jsonService.LoadCurrentSoldiers();
-                    return currentSoldiers.Select(s => new eventLog
-                    {
-                        userGuid = s.UserGuid_cur,
-                        Name = s.Name_cur,
-                        idCard = s.IdCard_cur,
-                        Gender = s.Gender_cur,
-                        phone = s.PhoneNumber_cur
-                    }).ToList();
-                }
-                else
-                {
-                    // Nếu fromDate là hôm nay, tính toán CurrentSoldiers như bình thường
-                    var (fromTsToday, toTsToday) = GetTodayTimestampRange();
-                    await UpdateCurrentSoldiersFromEventsAsync(fromTsToday, toTsToday, locationId);
-                    var currentSoldiers = _jsonService.LoadCurrentSoldiers();
-                    return currentSoldiers.Select(s => new eventLog
-                    {
-                        userGuid = s.UserGuid_cur,
-                        Name = s.Name_cur,
-                        idCard = s.IdCard_cur,
-                        Gender = s.Gender_cur,
-                        phone = s.PhoneNumber_cur
-                    }).ToList();
-                }
+                    userGuid = s.UserGuid_cur,
+                    Name = s.Name_cur,
+                    idCard = s.IdCard_cur,
+                    Gender = s.Gender_cur,
+                    phone = s.PhoneNumber_cur
+                }).ToList();
             }
 
             var data = await _eventLogRepo.GetEventLogsAsync(fromTs, toTs, locationId, 1, int.MaxValue);
@@ -496,18 +533,6 @@ namespace WebReport78.Services
 
             if (filterType == "Late") return data.Where(x => x.type_eventLE == "L").ToList();
             if (filterType == "Early") return data.Where(x => x.type_eventLE == "E").ToList();
-            //if (filterType == "CurrentSoldiers")
-            //{
-            //    var currentSoldiers = await GetCurrentSoldiersAsync(fromTs, toTs, locationId);
-            //    return currentSoldiers.Select(s => new eventLog
-            //    {
-            //        userGuid = s.UserGuid_cur,
-            //        Name = s.Name_cur,
-            //        idCard = s.IdCard_cur,
-            //        Gender = s.Gender_cur,
-            //        phone = s.PhoneNumber_cur
-            //    }).ToList();
-            //}
             return data;
         }
 
@@ -539,7 +564,7 @@ namespace WebReport78.Services
                 .Where(g => !string.IsNullOrEmpty(g.Key));
 
             foreach (var group in groupedRecords)
-            {
+            {   
                 var guid = group.Key;
                 if (!staffDict.TryGetValue(guid, out var staff)) continue;
 

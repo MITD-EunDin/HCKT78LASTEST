@@ -28,7 +28,7 @@
                 <button id="orgDropdown" class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     @(selectedOrg > 0 ? organizations.FirstOrDefault(o => o.IdOrg == selectedOrg)?.Name ?? "Chọn tổ chức" : "Chọn tổ chức")
                 </button>
-                <ul class="dropdown-menu" id="orgList">
+                <ul class="dropdown-menu" id="orgList" style="z-index:10000">
                     <li>
                         <a class="dropdown-item org-option" data-id="0">Không chọn</a>
                     </li>
@@ -46,7 +46,7 @@
                 <button id="deptDropdown" class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     @(selectedDept > 0 ? departments.FirstOrDefault(d => d.IdDept == selectedDept)?.Name ?? "Chọn phòng ban" : "Chọn phòng ban")
                 </button>
-                <ul class="dropdown-menu" id="deptList">
+                <ul class="dropdown-menu" id="deptList" style="z-index:10000">
                     <li><a class="dropdown-item dept-option" data-id="0">Không chọn</a></li>
                     @foreach (var dept in departments)
                     {
@@ -62,7 +62,7 @@
                 <button id="empDropdown" class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     @(selectedEmployeeGuids.Any() ? (selectedEmployeeGuids.Count == 1 ? employees.FirstOrDefault(e => e.GuidStaff == selectedEmployeeGuids.First())?.Name ?? "Chọn nhân viên" : $"{selectedEmployeeGuids.Count} nhân viên đã chọn") : "Chọn nhân viên")
                 </button>
-                <ul class="dropdown-menu" id="empList" style="max-height:250px; overflow-y:auto;"></ul>
+                <ul class="dropdown-menu" id="empList" style="max-height:250px; overflow-y:auto; z-index: 10000"></ul>
             </div>
         </div>
     </form>
