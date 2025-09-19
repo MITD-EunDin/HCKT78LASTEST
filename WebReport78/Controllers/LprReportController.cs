@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebReport78.Interfaces;
 using WebReport78.Models;
 using WebReport78.Repositories;
-using WebReport78.Services;
 
 namespace WebReport78.Controllers
 {

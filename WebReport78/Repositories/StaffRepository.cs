@@ -56,6 +56,20 @@ namespace WebReport78.Repositories
             }
             return staffList;
         }
+        // thiết kế cho first in và last out
+        public async Task<List<Staff>> GetStaffListAsync2()
+        {
+            const string cacheKey = "AllPerson";
+            if (!_cache.TryGetValue(cacheKey, out List<Staff> staffList))
+            {
+                using var context = _contextFactory.CreateDbContext();
+                staffList = await context.Staff
+                    .Where(s => s.IdTypePerson.HasValue && (s.IdTypePerson.Value == 0 || s.IdTypePerson.Value == 2 || s.IdTypePerson == 3))
+                    .ToListAsync();
+                _cache.Set(cacheKey, staffList, TimeSpan.FromHours(1));
+            }
+            return staffList;
+        }
 
         public async Task<List<Vehicle>> GetVehiclesAsync()
         {

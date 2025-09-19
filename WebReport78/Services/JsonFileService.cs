@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using WebReport78.Interfaces;
 using WebReport78.Models;
 
 namespace WebReport78.Services

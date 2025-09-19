@@ -15,6 +15,7 @@ namespace WebReport78.Repositories
         Task<int> GetGuestCurrentTodayAsync(List<Staff> guests, long toTs);
         // Lấy danh sách quân nhân (cacheable)
         Task<List<Staff>> GetStaffListAsync();
+        Task<List<Staff>> GetStaffListAsync2();
         // Lấy danh sách xe (cacheable)
         Task<List<Vehicle>> GetVehiclesAsync();
         // Lấy danh sách nguồn (camera, cacheable)
@@ -26,8 +27,6 @@ namespace WebReport78.Repositories
 
         //tổng số người có trong db cả loại 0 1 2 3 4
         //Task<List<Staff>> GetTotalEmployeeAsync();
-
-
         // Thêm hai phương thức mới
         Task<List<Organization>> GetOrganizationsAsync();
         Task<List<Department>> GetDepartmentsByOrgIdAsync(int orgId);

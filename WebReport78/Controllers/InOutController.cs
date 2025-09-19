@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebReport78.Interfaces;
 using WebReport78.Models;
 using WebReport78.Repositories;
 using WebReport78.Services;
@@ -80,28 +81,63 @@ namespace WebReport78.Controllers
                 }
                 else if (filterType == "FILO")
                 {
-                    //var filoData = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, selectedEmployeeGuids.Any() ? string.Join(",", selectedEmployeeGuids) : null);
-                    //data = filoData.Select(kvp => new eventLog
-                    //{
-                    //    userGuid = kvp.Key,
-                    //    Name = employees.FirstOrDefault(e => e.GuidStaff == kvp.Key)?.Name ?? "N/A",
-                    //    formatted_date = kvp.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
-                    //    type_eventIO = kvp.Value.LastOut?.ToString("dd-MM-yyyy HH:mm") ?? "N/A",
-                    //    cameraName = kvp.Value.CameraName
-                    //}).ToList();
                     var validSources = (await _staffRepo.GetSourcesAsync()).Where(s => s.AcCheckType == 1 || s.AcCheckType == 2).Select(s => s.Guid).ToList();
                     var vehicles = await _staffRepo.GetVehiclesAsync();
                     var vehicleDict = vehicles.ToDictionary(v => v.Lpn, v => v.IdStaff, StringComparer.OrdinalIgnoreCase);
+                    // dùng cái 2 này cho last out first in idtypeperson 0 2 3
+                    var staffList = await _staffRepo.GetStaffListAsync2();
+                    var staffDict = staffList.ToDictionary(s => s.GuidStaff, s => s);
 
-                    data = await _inOutService.GetFilteredDataAsync("All", fromTs, toTs, locationId, parsedFromDate, parsedToDate, validSources);
-                    if (selectedEmployeeGuids.Any())    
+                    // Gọi GetFirstInLastOutAsync
+                    var filoData = await _inOutService.GetFirstInLastOutAsync(fromTs, toTs, locationId, selectedEmployeeGuids.Any() ? string.Join(",", selectedEmployeeGuids) : null);
+
+                    // Chuyển đổi sang List<eventLog>
+                    data = new List<eventLog>();
+                    foreach (var kvp in filoData)
                     {
-                        data = data.Where(x =>
-                            (x.typeEvent == 1 && selectedEmployeeGuids.Contains(x.userGuid)) ||
-                            (x.typeEvent == 25 && vehicleDict.TryGetValue(x.Name, out var idStaff) && selectedEmployeeGuids.Contains(idStaff))
-                        ).ToList();
+                        var guid = kvp.Key;
+                        if (!staffDict.TryGetValue(guid, out var staff)) continue;
+
+                        // Thêm bản ghi Check-In (nếu có)
+                        if (kvp.Value.FirstIn.HasValue)
+                        {
+                            data.Add(new eventLog
+                            {
+                                userGuid = guid,
+                                Name = staff.Name,
+                                idCard = staff.DocumentNumber ?? "N/A",
+                                Gender = staff.Gender == 1 ? "Nam" : "Nữ",
+                                phone = staff.Phone ?? "",
+                                formatted_date = kvp.Value.FirstIn.Value.ToString("dd-MM-yyyy HH:mm"),
+                                type_eventIO = "Check-In",
+                                cameraName = kvp.Value.CameraNameIn
+                            });
+                        }
+
+                        // Thêm bản ghi Check-Out (nếu có)
+                        if (kvp.Value.LastOut.HasValue)
+                        {
+                            data.Add(new eventLog
+                            {
+                                userGuid = guid,
+                                Name = staff.Name,
+                                idCard = staff.DocumentNumber ?? "N/A",
+                                Gender = staff.Gender == 1 ? "Nam" : "Nữ",
+                                phone = staff.Phone ?? "",
+                                formatted_date = kvp.Value.LastOut.Value.ToString("dd-MM-yyyy HH:mm"),
+                                type_eventIO = "Check-Out",
+                                cameraName = kvp.Value.CameraNameOut
+                            });
+                        }
                     }
-                    await _inOutService.ProcessEventLogAsync(data, parsedFromDate, parsedToDate);
+
+                    // Lọc theo selectedEmployeeGuids (nếu có)
+                    if (selectedEmployeeGuids.Any())
+                    {
+                        data = data.Where(x => selectedEmployeeGuids.Contains(x.userGuid)).ToList();
+                    }
+
+                    // Loại bỏ bản ghi không hợp lệ
                     data = data.Where(x => !string.IsNullOrEmpty(x.Name) && x.Name != "Unknown").ToList();
                 }
                 else
@@ -110,11 +146,12 @@ namespace WebReport78.Controllers
                     data = await _inOutService.GetFilteredDataAsync(filterType, fromTs, toTs, locationId, parsedFromDate, parsedToDate, validSources);
                     data = data.Where(x => !string.IsNullOrEmpty(x.Name) && x.Name != "Unknown").ToList();
                 }
-                // Phân trang server-side cho TẤT CẢ filter
+
+                // Phân trang server-side
                 var totalItems = data.Count;
                 ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
                 data = data.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-                //ViewBag.TotalPages = (int)Math.Ceiling((double)data.Count / pageSize);
+
                 return View(data);
             }
             catch (Exception ex)
@@ -223,46 +260,46 @@ namespace WebReport78.Controllers
         }
 
         // Gọi DoubleInOutAsync
-        [HttpGet]
-        public async Task<IActionResult> GetInOutTimes(string fromDate, string toDate, string employeeGuids)
-        {
-            try
-            {
-                var guids = string.IsNullOrEmpty(employeeGuids) ? new List<string>() : employeeGuids.Split(',').ToList();
-                var (parsedFromDate, parsedToDate, fromTs, toTs) = _inOutService.ParseDateRange(fromDate, toDate);
-                var locationId = _jsonService.GetLocationId();
+        //[HttpGet]
+        //public async Task<IActionResult> GetInOutTimes(string fromDate, string toDate, string employeeGuids)
+        //{
+        //    try
+        //    {
+        //        var guids = string.IsNullOrEmpty(employeeGuids) ? new List<string>() : employeeGuids.Split(',').ToList();
+        //        var (parsedFromDate, parsedToDate, fromTs, toTs) = _inOutService.ParseDateRange(fromDate, toDate);
+        //        var locationId = _jsonService.GetLocationId();
 
-                var result = new Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>();
-                foreach (var guid in guids)
-                {
-                    var partialResult = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, guid);
-                    foreach (var kvp in partialResult)
-                    {
-                        result[kvp.Key] = kvp.Value;
-                    }
-                }
+        //        var result = new Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>();
+        //        foreach (var guid in guids)
+        //        {
+        //            var partialResult = await _inOutService.DoubleInOutAsync(fromTs, toTs, locationId, guid);
+        //            foreach (var kvp in partialResult)
+        //            {
+        //                result[kvp.Key] = kvp.Value;
+        //            }
+        //        }
 
-                if (!result.Any())
-                {
-                    return Json(new { success = false, message = "Không tìm thấy dữ liệu check-in/check-out." });
-                }
+        //        if (!result.Any())
+        //        {
+        //            return Json(new { success = false, message = "Không tìm thấy dữ liệu check-in/check-out." });
+        //        }
 
-                var response = result.Select(r => new
-                {
-                    UserGuid = r.Key,
-                    FirstIn = r.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm"),
-                    LastOut = r.Value.LastOut?.ToString("dd-MM-yyyy HH:mm"),
-                    CameraName = r.Value.CameraName
-                });
+        //        var response = result.Select(r => new
+        //        {
+        //            UserGuid = r.Key,
+        //            FirstIn = r.Value.FirstIn?.ToString("dd-MM-yyyy HH:mm"),
+        //            LastOut = r.Value.LastOut?.ToString("dd-MM-yyyy HH:mm"),
+        //            CameraName = r.Value.CameraName
+        //        });
 
-                return Json(new { success = true, data = response });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi lấy thời gian check-in/check-out");
-                return StatusCode(500, new { success = false, message = "Lỗi hệ thống nội bộ" });
-            }
-        }
+        //        return Json(new { success = true, data = response });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Lỗi khi lấy thời gian check-in/check-out");
+        //        return StatusCode(500, new { success = false, message = "Lỗi hệ thống nội bộ" });
+        //    }
+        //}
 
         // Xuất báo cáo Excel
         [HttpPost]

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace WebReport78.Services
+namespace WebReport78.Interfaces
 {
     public interface IAuthService
     {

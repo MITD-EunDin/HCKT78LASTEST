@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using WebReport78.Interfaces;
 using WebReport78.Models;
 using WebReport78.Repositories;
 
@@ -71,6 +72,7 @@ namespace WebReport78.Services
             var currentSoldiers = _jsonService.LoadCurrentSoldiers();
             var manualActions = _jsonService.LoadManualActions();
 
+            
             Parallel.ForEach(records, record =>
             {
                 // Thêm kiểm tra event_name trước khi xử lý
@@ -204,7 +206,8 @@ namespace WebReport78.Services
         public async Task ProcessEventLogAsync(List<eventLog> data, DateTime fromDate, DateTime toDate)
         {
             var sources = await _staffRepo.GetSourcesAsync();
-            var staffList = await _staffRepo.GetStaffListAsync();
+            // lấy tất cả loại người
+            var staffList = await _staffRepo.GetStaffListAsync2();
             var vehicles = await _staffRepo.GetVehiclesAsync();
             var manualActions = _jsonService.LoadManualActions();
 
@@ -252,9 +255,11 @@ namespace WebReport78.Services
                 if (staff == null) continue;
 
                 bool exclude = staff.IdTypePerson == 0;
+                bool exclude1 = staff.IdTypePerson == 3;
                 var userRecords = group.ToList();
 
                 if (exclude) continue;
+                if (exclude1) continue;
 
                 if (staff.IdTypePerson == 2)
                 {
@@ -537,12 +542,13 @@ namespace WebReport78.Services
         }
 
         // first check in và last check out
-        public async Task<Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>> DoubleInOutAsync(long fromTs, long toTs, string locationId, string employeeGuid)
+        public async Task<Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraNameIn, string CameraNameOut)>> GetFirstInLastOutAsync(long fromTs, long toTs, string locationId, string employeeGuid)
         {
-            var result = new Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>();
+            var result = new Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraNameIn, string CameraNameOut)>();
             var records = await _eventLogRepo.GetEventLogsAsync(fromTs, toTs, locationId, 1, int.MaxValue);
             var sources = await _staffRepo.GetSourcesAsync();
-            var staffList = await _staffRepo.GetStaffListAsync();
+            // dùng cái staff list 2 này để lấy hết loại idtyperperson 1 2 3 
+            var staffList = await _staffRepo.GetStaffListAsync2();
             var vehicles = await _staffRepo.GetVehiclesAsync();
 
             // Tạo dictionary để tra cứu nhanh
@@ -550,10 +556,12 @@ namespace WebReport78.Services
             var vehicleDict = vehicles.ToDictionary(v => v.Lpn, v => v, StringComparer.OrdinalIgnoreCase);
             var staffDict = staffList.ToDictionary(s => s.GuidStaff, s => s);
 
+            // Lọc bản ghi theo employeeGuid (nếu có)
             var filteredRecords = string.IsNullOrEmpty(employeeGuid)
                 ? records
                 : records.Where(r => r.userGuid == employeeGuid || (r.typeEvent == 25 && vehicleDict.TryGetValue(r.Name, out var v) && v.IdStaff == employeeGuid)).ToList();
 
+            // Nhóm bản ghi theo userGuid hoặc IdStaff (cho type 25)
             var groupedRecords = filteredRecords
                 .GroupBy(r =>
                 {
@@ -564,7 +572,7 @@ namespace WebReport78.Services
                 .Where(g => !string.IsNullOrEmpty(g.Key));
 
             foreach (var group in groupedRecords)
-            {   
+            {
                 var guid = group.Key;
                 if (!staffDict.TryGetValue(guid, out var staff)) continue;
 
@@ -586,11 +594,14 @@ namespace WebReport78.Services
                 var lastOutTime = lastCheckOut != null
                     ? DateTimeOffset.FromUnixTimeSeconds(lastCheckOut.time_stamp).ToLocalTime().DateTime
                     : (DateTime?)null;
-                var cameraName = firstCheckIn != null
+                var cameraNameIn = firstCheckIn != null
                     ? (sourceDict.TryGetValue(firstCheckIn.sourceID, out var src) ? src.Name : firstCheckIn.sourceID)
-                    : (lastCheckOut != null && sourceDict.TryGetValue(lastCheckOut.sourceID, out var src2) ? src2.Name : "N/A");
+                    : null;
+                var cameraNameOut = lastCheckOut != null
+                    ? (sourceDict.TryGetValue(lastCheckOut.sourceID, out var src2) ? src2.Name : lastCheckOut.sourceID)
+                    : null;
 
-                result[guid] = (firstInTime, lastOutTime, cameraName);
+                result[guid] = (firstInTime, lastOutTime, cameraNameIn, cameraNameOut);
             }
 
             return result;

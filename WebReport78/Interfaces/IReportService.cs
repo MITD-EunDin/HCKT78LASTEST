@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebReport78.Models;
 
-namespace WebReport78.Services
+namespace WebReport78.Interfaces
 {
     // Interface cho xuất báo cáo Excel (có thể dùng chung cho InOut và Lpr nếu logic tương tự)
     public interface IReportService

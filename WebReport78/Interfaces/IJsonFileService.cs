@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using WebReport78.Models;
 
-namespace WebReport78.Services
+namespace WebReport78.Interfaces
 {
     // Interface cho việc đọc/ghi file JSON (settingcamera.json, currentsoldiers.json, manualactions.json)
     public interface IJsonFileService

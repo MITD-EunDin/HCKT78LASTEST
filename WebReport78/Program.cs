@@ -7,6 +7,7 @@ using WebReport78.Services;
 using MongoDB.Driver.Core.Configuration;
 using WebReport78.Repositories;
 using WebReport78.Model2s;
+using WebReport78.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

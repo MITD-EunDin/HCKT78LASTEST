@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using WebReport78.Models;
 
-namespace WebReport78.Services
+namespace WebReport78.Interfaces
 {
     public interface ILprService
     {

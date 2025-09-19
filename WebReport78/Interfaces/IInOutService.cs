@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebReport78.Models;
 
-namespace WebReport78.Services
+namespace WebReport78.Interfaces
 {
     // Interface cho logic chung của InOut và Lpr
     public interface IInOutService
@@ -38,6 +38,6 @@ namespace WebReport78.Services
         Task<List<eventLog>> GetFilteredDataAsync(string filterType, long fromTs, long toTs, string locationId, DateTime fromDate, DateTime toDate, List<string> validSources);
 
         // Lấy cặp check-in đầu tiên và check-out cuối cùng theo GuidStaff
-        Task<Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraName)>> DoubleInOutAsync(long fromTs, long toTs, string locationId, string employeeGuid);
+        Task<Dictionary<string, (DateTime? FirstIn, DateTime? LastOut, string CameraNameIn, string CameraNameOut)>> GetFirstInLastOutAsync(long fromTs, long toTs, string locationId, string employeeGuid);
     }
 }

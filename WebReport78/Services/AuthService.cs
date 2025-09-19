@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebReport78.Model2s;
 using WebReport78.Repositories;
+using WebReport78.Interfaces;
 
 namespace WebReport78.Services
 {
@@ -67,8 +68,8 @@ namespace WebReport78.Services
                 //    //return BitConverter.ToString(hash).Replace("-", "").ToLower();
                 //    return rs;
                 //}
-                string trimmedPassword = password.Trim();
-                string trimSalt = salt.Trim();
+                string trimmedPassword = password;
+                string trimSalt = salt;
                 byte[] keyBytes = Encoding.UTF8.GetBytes(trimSalt);     // Salt đóng vai trò như key
                 byte[] messageBytes = Encoding.UTF8.GetBytes(trimmedPassword); // Password là message
 

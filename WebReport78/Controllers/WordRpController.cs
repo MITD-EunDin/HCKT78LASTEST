@@ -3,6 +3,7 @@ using Xceed.Words.NET;
 using WebReport78.Models;
 using WebReport78.Repositories;
 using WebReport78.Services;
+using WebReport78.Interfaces;
 namespace WebReport78.Controllers
 {
     public class WordRpController : Controller

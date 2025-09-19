@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using OfficeOpenXml;
+using WebReport78.Interfaces;
 using WebReport78.Models;
 using WebReport78.Repositories;
 

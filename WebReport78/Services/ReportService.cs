@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
+using WebReport78.Interfaces;
 using WebReport78.Models;
 using WebReport78.Repositories;
 

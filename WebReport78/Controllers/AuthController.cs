@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using WebReport78.Services;
+using WebReport78.Interfaces;
 
 namespace WebReport78.Controllers
 {
